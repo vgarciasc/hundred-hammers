@@ -7,5 +7,5 @@ setup(name='hundred_hammers',
       author='Vinicius Garcia',
       author_email='vinizinho@vinizinho.net',
       license='MIT',
-      packages=['hundred_hammers'],
+      packages=['src/hundred_hammers'],
       zip_safe=False)

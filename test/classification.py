@@ -1,11 +1,8 @@
-from sklearn.dummy import DummyClassifier
 from sklearn.datasets import load_iris
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
 
-from hundred_hammers.classifier import HundredHammersClassifier
-from hundred_hammers.plots import plot_batch_results, plot_confusion_matrix
+from src.hundred_hammers import HundredHammersClassifier
+from src.hundred_hammers.plots import plot_batch_results, plot_confusion_matrix
 
 import warnings
 from sklearn.exceptions import ConvergenceWarning

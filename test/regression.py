@@ -4,8 +4,8 @@ from sklearn.datasets import load_diabetes
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error
 
-from hundred_hammers.regressor import HundredHammersRegressor
-from hundred_hammers.plots import plot_regression_pred
+from src.hundred_hammers import HundredHammersRegressor
+from src.hundred_hammers.plots import plot_regression_pred
 
 import warnings
 from sklearn.exceptions import ConvergenceWarning

@@ -1,5 +1,5 @@
-from hundred_hammers.base import HundredHammersBase
-from hundred_hammers.model_zoo import DEFAULT_REGRESSION_MODELS, DEFAULT_REGRESSION_METRICS
+from src.hundred_hammers.base import HundredHammersBase
+from src.hundred_hammers.model_zoo import DEFAULT_REGRESSION_MODELS, DEFAULT_REGRESSION_METRICS
 
 
 class HundredHammersRegressor(HundredHammersBase):
