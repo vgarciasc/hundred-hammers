@@ -102,7 +102,7 @@ def plot_regression_pred(X, y, models, y_label="", title="", test_size=0.2,
     fig.patch.set_facecolor('lightgrey')
 
     plt.plot(range(len(_y)), _y, 'b', label="Data", linewidth=3)
-    for md in [DummyRegressor(strategy='median'), *models]:
+    for md in models:
         md = md.fit(X_train, y_train)
         md_name = md.__class__.__name__
 

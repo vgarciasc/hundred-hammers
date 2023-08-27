@@ -1,8 +1,8 @@
 from sklearn.datasets import load_iris
 from sklearn.neighbors import KNeighborsClassifier
 
-from src.hundred_hammers import HundredHammersClassifier
-from src.hundred_hammers.plots import plot_batch_results, plot_confusion_matrix
+from hundred_hammers.classifier import HundredHammersClassifier
+from hundred_hammers.plots import plot_batch_results, plot_confusion_matrix
 
 import warnings
 from sklearn.exceptions import ConvergenceWarning
@@ -16,9 +16,6 @@ if __name__ == "__main__":
     y = data.target
 
     # Create the model
-    # hh = HundredHammersClassifier(models=[("Dummy Classifier", DummyClassifier(), {}),
-    #                                       ("Decision Tree", DecisionTreeClassifier(), {}),
-    #                                       ("K Nearest Neighbors", KNeighborsClassifier(), {})])
     hh = HundredHammersClassifier()
 
     # Evaluate the model
