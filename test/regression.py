@@ -33,5 +33,5 @@ if __name__ == "__main__":
 
     # Plot the results
     plot_batch_results(df_results, metric_name="MSE", title="Diabetes")
-    plot_regression_pred(X, y, models=[best_model], metric=mean_squared_error,
+    plot_regression_pred(X, y, models=[DummyRegressor(strategy='median'), best_model], metric=mean_squared_error,
                          title="Diabetes", y_label="Diabetes (Value)")
