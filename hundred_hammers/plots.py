@@ -29,7 +29,7 @@ def plot_confusion_matrix(X, y, model, class_dict, title="", test_size=0.2, seed
 
     # Plotting
     sns.set_style("ticks")
-    fig, axs = plt.subplots(2, 2, figsize=(6.5, 12))
+    fig, axs = plt.subplots(2, 2, figsize=(10, 10))
     fig.patch.set_facecolor('lightgrey')
 
     for i, md in enumerate([model, DummyClassifier()]):
@@ -60,12 +60,13 @@ def plot_confusion_matrix(X, y, model, class_dict, title="", test_size=0.2, seed
     plt.suptitle(title, fontweight='bold', fontsize=14)
     plt.tight_layout()
 
-    if display:
-        plt.show()
     if filepath is not None:
-        plt.savefig({filepath}, dpi=200)
+        plt.savefig(filepath, dpi=200)
         if not display:
             plt.close()
+    else:
+        if display:
+            plt.show()
 
 def plot_regression_pred(X, y, models, y_label="", title="", test_size=0.2,
                          metric=None, seed=0, filepath=None, display=True):
@@ -128,12 +129,13 @@ def plot_regression_pred(X, y, models, y_label="", title="", test_size=0.2,
 
     plt.tight_layout()
 
-    if display:
-        plt.show()
     if filepath is not None:
-        plt.savefig(f"{filepath}.png", dpi=200)
+        plt.savefig(filepath, dpi=200)
         if not display:
             plt.close()
+    else:
+        if display:
+            plt.show()
 
 def plot_batch_results(df, metric_name, title="", filepath=None, display=True):
     """
@@ -168,9 +170,10 @@ def plot_batch_results(df, metric_name, title="", filepath=None, display=True):
 
     plt.tight_layout()
 
-    if display:
-        plt.show()
     if filepath is not None:
-        plt.savefig(f"{filepath}.png", dpi=200)
+        plt.savefig(filepath, dpi=200)
         if not display:
             plt.close()
+    else:
+        if display:
+            plt.show()
