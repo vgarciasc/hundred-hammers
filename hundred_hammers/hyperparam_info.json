@@ -1,0 +1,411 @@
+[
+    {
+        "model": "DummyClassifier",
+        "strategy": {
+            "type": "categorical",
+            "values": [
+                "most_frequent",
+                "prior",
+                "stratified",
+                "uniform",
+                "constant"
+            ]
+        }
+    },
+
+    {
+        "model": "DummyRegressor",
+        "strategy": {
+            "type": "categorical",
+            "values": [
+                "mean",
+                "median",
+                "quantile",
+                "constant"
+            ]
+        }
+    },
+
+    {
+        "model": "IsotonicRegression"
+    },
+
+    {
+        "model": "KNeighborsClassifier",
+        "n_neighbors": {
+            "type": "integer",
+            "min": 1
+        },
+        "metric": {
+            "type": "categorical",
+            "values": [
+                "manhattan",
+                "euclidean",
+                "cosine",
+                "heaversine"
+            ]
+        }
+    },
+
+    {
+        "model": "KNeighborsRegressor",
+        "n_neighbors": {
+            "type": "integer",
+            "min": 1
+        },
+        "metric": {
+            "type": "categorical",
+            "values": [
+                "manhattan",
+                "euclidean",
+                "cosine",
+                "heaversine"
+            ]
+        }
+    },
+
+    {
+        "model": "LinearRegression"
+    },
+
+    {
+        "model": "Ridge",
+        "alpha": {
+            "type": "real",
+            "min": 0
+        }
+    },
+
+    {
+        "model": "Lasso",
+        "alpha": {
+            "type": "real",
+            "min": 0
+        }
+    },
+
+    {
+        "model": "ElasticNet",
+        "alpha": {
+            "type": "real",
+            "min": 0
+        },
+        "l1_ratio": {
+            "type": "real",
+            "min": 0,
+            "max": 1
+        }
+    },
+
+    {
+        "model": "LogisticRegression"
+    },
+
+    {
+        "model": "RidgeClassifier",
+        "alpha": {
+            "type": "real",
+            "min": 0
+        }
+    },
+
+    {
+        "model": "SGDClassifier",
+        "penalty": {
+            "type": "categorical",
+            "values": [
+                "l1",
+                "l2",
+                "elasticnet",
+                "None"
+            ]
+        },
+        "alpha": {
+            "type": "real",
+            "min": 0
+        },
+        "l1_ratio": {
+            "type": "real",
+            "min": 0,
+            "max": 1
+        }
+    },
+
+    {
+        "model": "Perceptron",
+        "penalty": {
+            "type": "categorical",
+            "values": [
+                "l1",
+                "l2",
+                "elasticnet",
+                "None"
+            ]
+        },
+        "alpha": {
+            "type": "real",
+            "min": 0
+        },
+        "l1_ratio": {
+            "type": "real",
+            "min": 0,
+            "max": 1
+        }
+    },
+
+    {
+        "model": "PassiveAggressiveClassifier",
+        "C": {
+            "type": "real",
+            "min": 0
+        }   
+    },
+
+    {
+        "model": "KernelRidge",
+        "alpha": {
+            "type": "real",
+            "min": 0
+        },
+        "kernel": {
+            "type": "categorical",
+            "values": [
+                "linear",
+                "poly",
+                "rbf"
+            ]
+        }
+    },
+
+    {
+        "model": "SVC",
+        "C": {
+            "type": "real",
+            "min": 0
+        },
+        "kernel": {
+            "type": "categorical",
+            "values": [
+                "linear",
+                "poly",
+                "rbf"
+            ]
+        },
+        "degree": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "SVR",
+        "C": {
+            "type": "real",
+            "min": 0
+        },
+        "kernel": {
+            "type": "categorical",
+            "values": [
+                "linear",
+                "poly",
+                "rbf"
+            ]
+        },
+        "degree": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "DecisionTreeClassifier",
+        "criterion": {
+            "type": "categorical",
+            "values": [
+                "gini",
+                "entropy",
+                "log_loss"
+            ]
+        },
+        "max_depth": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "DecisionTreeRegressor",
+        "criterion": {
+            "type": "categorical",
+            "values": [
+                "gini",
+                "entropy",
+                "log_loss"
+            ]
+        },
+        "max_depth": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "AdaBoostClassifier",
+        "n_estimators": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "AdaBoostRegressor",
+        "n_estimators": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "GradientBoostingClassifier",
+        "n_estimators": {
+            "type": "integer",
+            "min": 1
+        },
+        "criterion": {
+            "type": "categorical",
+            "values": [
+                "gini",
+                "entropy",
+                "log_loss"
+            ]
+        },
+        "max_depth": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "GradientBoostingRegressor",
+        "n_estimators": {
+            "type": "integer",
+            "min": 1
+        },
+        "criterion": {
+            "type": "categorical",
+            "values": [
+                "gini",
+                "entropy",
+                "log_loss"
+            ]
+        },
+        "max_depth": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "RandomForestClassifier",
+        "n_estimators": {
+            "type": "integer",
+            "min": 1
+        },
+        "criterion": {
+            "type": "categorical",
+            "values": [
+                "gini",
+                "entropy",
+                "log_loss"
+            ]
+        },
+        "max_depth": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "RandomForestRegressor",
+        "n_estimators": {
+            "type": "integer",
+            "min": 1
+        },
+        "criterion": {
+            "type": "categorical",
+            "values": [
+                "gini",
+                "entropy",
+                "log_loss"
+            ]
+        },
+        "max_depth": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "GaussianNB",
+        "var_smoothing": {
+            "type": "real",
+            "min": 0 
+        }
+    },
+
+    {
+        "model": "LinearDiscriminantAnalysis",
+        "solver": {
+            "type": "categorical",
+            "values": [
+                "svd",
+                "lsqr",
+                "eigen"
+            ]
+        }
+    },
+
+    {
+        "model": "QuadraticDiscriminantAnalysis"
+    },
+
+    {
+        "model": "XGBRegressor",
+        "n_estimators": {
+            "type": "integer",
+            "min": 1
+        },
+        "max_depth": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "XGBClassifier",
+        "n_estimators": {
+            "type": "integer",
+            "min": 1
+        },
+        "max_depth": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "ELMRegressor",
+        "n_neurons": {
+            "type": "integer",
+            "min": 1
+        }
+    },
+
+    {
+        "model": "ELMClassifier",
+        "n_neurons": {
+            "type": "integer",
+            "min": 1
+        }
+    }
+]
