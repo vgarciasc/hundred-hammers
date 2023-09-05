@@ -69,7 +69,7 @@ def plot_confusion_matrix(X, y, model, class_dict, title="", test_size=0.2, seed
             plt.show()
 
 def plot_regression_pred(X, y, models, y_label="", title="", test_size=0.2,
-                         metric=None, seed=0, filepath=None, display=True):
+                         metric=None, seed=0, filepath=None, display=True, type="simple"):
     """
     Plot the predictions of the regression model
 

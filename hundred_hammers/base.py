@@ -10,16 +10,35 @@ import math
 from sklearn.model_selection import train_test_split, KFold
 from adjustText import adjust_text
 from sklearn.model_selection import GridSearchCV
+from .metric_alias import metric_alias
 
 class HundredHammersBase():
     def __init__(self, models=None, metrics=None, test_size=0.2, n_folds=5, n_folds_tune=5, n_seeds=10, verbose=True):
         self.models = models
-        self.metrics = metrics
+        
+        self.metrics = []
+
+        for metric in metrics:
+            if isinstance(metric, str):
+                # Metric given by its name
+                metric_fn_name = metric
+                if metric in metric_alias:
+                    metric_fn_name = metric_alias[metric]
+
+                scorer = get_scorer(metric_fn_name)
+                self.metrics.append((scorer._score_func, scorer._kwargs))
+            else:
+                # Metric given as a lambda function
+                self.metrics.append((metric, {}))
+
         self.test_size = test_size
         self.n_folds = n_folds
         self.n_folds_tune = n_folds_tune
         self.n_seeds = n_seeds
         self.verbose = verbose
+
+
+
 
     def calc_metrics(self, y_true, y_pred):
         """

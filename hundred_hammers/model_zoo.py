@@ -69,13 +69,11 @@ from skelm import ELMClassifier
 from sklearn.metrics import r2_score, mean_squared_error, accuracy_score, balanced_accuracy_score
 
 DEFAULT_REGRESSION_METRICS = [
-    ('MSE', mean_squared_error, {}),
-    ('R2', r2_score, {})
+    "MSE", "R2"
 ]
 
 DEFAULT_CLASSIFICATION_METRICS = [
-    ('Accuracy', accuracy_score, {}),
-    # ('Balanced Accuracy', balanced_accuracy_score, {}),
+    "ACC", "F1", "ROC"
 ]
 
 DEFAULT_REGRESSION_MODELS = [
