@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 import pytest
 from hundred_hammers import known_hyperparams, known_models, hyperparam_def_schema, add_known_model_def
 from schema import SchemaError

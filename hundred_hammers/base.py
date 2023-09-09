@@ -196,7 +196,6 @@ class HundredHammersBase():
         :param y: target values
         :param model: model to evaluate
         :param n_evals: number of times to train the model (each iteration uses a different seed)
-        :param should_print: whether to print the results
         :return: a tuple with the results for validation train, validation test, train and test
         """
 
@@ -251,7 +250,9 @@ class HundredHammersBase():
             X_val_train, X_val_test = X_train[train_index], X_train[test_index]
             y_val_train, y_val_test = y_train[train_index], y_train[test_index]
 
-            model.fit(X_val_train, y_val_train)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                model.fit(X_val_train, y_val_train)
 
             result_val_train = self._calc_metrics(model.predict(X_val_train), y_val_train)
             result_val_test = self._calc_metrics(model.predict(X_val_test), y_val_test)
@@ -259,7 +260,9 @@ class HundredHammersBase():
             results_val_train.append(result_val_train)
             results_val_test.append(result_val_test)
 
-        model.fit(X_train, y_train)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            model.fit(X_train, y_train)
         result_train = self._calc_metrics(model.predict(X_train), y_train)
         result_test = self._calc_metrics(model.predict(X_test), y_test)
 

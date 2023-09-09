@@ -1,4 +1,5 @@
 from __future__ import annotations
+from copy import copy
 import random
 import json
 from pathlib import Path
@@ -39,7 +40,9 @@ def add_known_model_def(def_dict: dict):
             - {"type": "integer", "min": <number>, "max": <number>},
             - {"type": "categorical", "values": [<number or string>]}
     }
-    There can be any number of hyperparameters, even 0.
+    There can be any number of hyperparameters, even 0, they MUST correspond to the
+    arguments used in the model constructor or you will get an error in the hyperparameter
+    search step.
     
     :param def_dict: dictionary that defines the hyperparameters of a new model.
     """
@@ -80,7 +83,7 @@ def find_hyperparam_def(model: BaseEstimator) -> dict:
 
     if model_name in known_models:
         p_idx = known_models.index(model_name)
-        params = known_hyperparams[p_idx]
+        params = copy(known_hyperparams[p_idx])
         params.pop("model", None)
     else:
         hh_logger.warning(f"The model {model_name} has not been found and no hyperparameter definitions can be used.")
@@ -96,9 +99,7 @@ def construct_hyperparam_grid(hyperparam_grid_def: dict, n_grid_points: int = 10
     :return: List of hyperparameter grids to use in grid search.
     """
 
-    keys = list(hyperparam_grid_def.keys())
-    if "model" in keys:
-        keys.remove("model")
+    keys = [k for k in hyperparam_grid_def.keys() if k != 'model']
 
     model_params = {}
     hh_logger.debug(f"Using hyperparameter definitions: {hyperparam_grid_def}")

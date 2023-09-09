@@ -1,18 +1,16 @@
-from sklearn.dummy import DummyRegressor
-from sklearn.linear_model import LinearRegression
+import logging
 from sklearn.datasets import load_diabetes
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error
+import matplotlib.pyplot as plt
 
-from hundred_hammers.regressor import HundredHammersRegressor
-from hundred_hammers.plots import plot_batch_results, plot_regression_pred
+from hundred_hammers import HundredHammersRegressor, plot_batch_results, plot_regression_pred
+from hundred_hammers.model_zoo import DummyRegressor
 
 import warnings
 from sklearn.exceptions import ConvergenceWarning
 
-warnings.filterwarnings(action='ignore', category=ConvergenceWarning)
 
-if __name__ == "__main__":
+def main():
     data = load_diabetes()
     X = data.data
     y = data.target
@@ -21,7 +19,7 @@ if __name__ == "__main__":
     hh = HundredHammersRegressor()
 
     # Evaluate the model
-    df_results = hh.evaluate(X, y)
+    df_results = hh.evaluate(X, y, optim_hyper=False)
 
     # Print the results
     print(df_results)
@@ -35,3 +33,6 @@ if __name__ == "__main__":
     plot_batch_results(df_results, metric_name="MSE", title="Diabetes")
     plot_regression_pred(X, y, models=[DummyRegressor(strategy='median'), best_model], metric=mean_squared_error,
                          title="Diabetes", y_label="Diabetes (Value)")
+
+if __name__ == "__main__":
+    main()
