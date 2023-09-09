@@ -25,6 +25,6 @@ if __name__ == "__main__":
     print(df_results)
 
     # Plot the results
-    plot_batch_results(df_results, metric_name="Accuracy", title="Iris Dataset")
+    plot_batch_results(df_results, metric_name="ACC", title="Iris Dataset")
     plot_confusion_matrix(X, y, class_dict={0: "Setosa", 1: "Versicolor", 2: "Virginica"},
                           model=KNeighborsClassifier(), title="Iris Dataset")
