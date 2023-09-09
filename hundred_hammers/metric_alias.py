@@ -1,3 +1,8 @@
+"""
+This module provides some alternative names for metrics
+implemented in sklearn.
+"""
+
 metric_alias = {
     "ACC": "accuracy",
     "BACC": "balanced_accuracy",

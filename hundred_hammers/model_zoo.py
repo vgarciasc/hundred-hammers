@@ -1,72 +1,74 @@
-# Import of all the classifiers and regressors in sklearn 
-from sklearn.dummy import DummyClassifier
-from sklearn.dummy import DummyRegressor
+"""
+This module provides an easy way of accessing all available machine learning models
+and provides some default models to use for classification and regression tasks.
+"""
 
-from sklearn.isotonic import IsotonicRegression
+from sklearn.dummy import DummyClassifier # pylint: disable=W0611
+from sklearn.dummy import DummyRegressor # pylint: disable=W0611
 
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neighbors import KNeighborsRegressor
+from sklearn.isotonic import IsotonicRegression # pylint: disable=W0611
 
-from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import Ridge
-from sklearn.linear_model import RidgeCV
-from sklearn.linear_model import Lasso
-from sklearn.linear_model import LassoCV
-from sklearn.linear_model import ElasticNet
-from sklearn.linear_model import ElasticNetCV
-from sklearn.linear_model import LogisticRegression
-from sklearn.linear_model import RidgeClassifier
-from sklearn.linear_model import RidgeClassifierCV
-from sklearn.linear_model import SGDClassifier
-from sklearn.linear_model import Perceptron
-from sklearn.linear_model import PassiveAggressiveClassifier
-from sklearn.linear_model import PassiveAggressiveRegressor
+from sklearn.neighbors import KNeighborsClassifier # pylint: disable=W0611
+from sklearn.neighbors import KNeighborsRegressor # pylint: disable=W0611
 
-from sklearn.kernel_ridge import KernelRidge
+from sklearn.linear_model import LinearRegression # pylint: disable=W0611
+from sklearn.linear_model import Ridge # pylint: disable=W0611
+from sklearn.linear_model import RidgeCV # pylint: disable=W0611
+from sklearn.linear_model import Lasso # pylint: disable=W0611
+from sklearn.linear_model import LassoCV # pylint: disable=W0611
+from sklearn.linear_model import ElasticNet # pylint: disable=W0611
+from sklearn.linear_model import ElasticNetCV # pylint: disable=W0611
+from sklearn.linear_model import LogisticRegression # pylint: disable=W0611
+from sklearn.linear_model import RidgeClassifier # pylint: disable=W0611
+from sklearn.linear_model import RidgeClassifierCV # pylint: disable=W0611
+from sklearn.linear_model import SGDClassifier # pylint: disable=W0611
+from sklearn.linear_model import Perceptron # pylint: disable=W0611
+from sklearn.linear_model import PassiveAggressiveClassifier # pylint: disable=W0611
+from sklearn.linear_model import PassiveAggressiveRegressor # pylint: disable=W0611
 
-from sklearn.neural_network import MLPClassifier
-from sklearn.neural_network import MLPRegressor
+from sklearn.kernel_ridge import KernelRidge# pylint: disable=W0611
 
-from sklearn.svm import LinearSVC
-from sklearn.svm import LinearSVR
-from sklearn.svm import SVC
-from sklearn.svm import SVR
+from sklearn.neural_network import MLPClassifier # pylint: disable=W0611
+from sklearn.neural_network import MLPRegressor # pylint: disable=W0611
 
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.tree import ExtraTreeClassifier
-from sklearn.tree import ExtraTreeRegressor
+from sklearn.svm import LinearSVC # pylint: disable=W0611
+from sklearn.svm import LinearSVR # pylint: disable=W0611
+from sklearn.svm import SVC # pylint: disable=W0611
+from sklearn.svm import SVR # pylint: disable=W0611
 
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import AdaBoostRegressor
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.ensemble import BaggingClassifier
+from sklearn.tree import DecisionTreeClassifier # pylint: disable=W0611
+from sklearn.tree import DecisionTreeRegressor # pylint: disable=W0611
+from sklearn.tree import ExtraTreeClassifier # pylint: disable=W0611
+from sklearn.tree import ExtraTreeRegressor # pylint: disable=W0611
 
-from sklearn.naive_bayes import BernoulliNB
-from sklearn.naive_bayes import CategoricalNB
-from sklearn.naive_bayes import ComplementNB
-from sklearn.naive_bayes import GaussianNB
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.ensemble import AdaBoostClassifier # pylint: disable=W0611
+from sklearn.ensemble import AdaBoostRegressor # pylint: disable=W0611
+from sklearn.ensemble import GradientBoostingClassifier # pylint: disable=W0611
+from sklearn.ensemble import GradientBoostingRegressor # pylint: disable=W0611
+from sklearn.ensemble import RandomForestClassifier # pylint: disable=W0611
+from sklearn.ensemble import RandomForestRegressor # pylint: disable=W0611
+from sklearn.ensemble import ExtraTreesClassifier # pylint: disable=W0611
+from sklearn.ensemble import BaggingClassifier # pylint: disable=W0611
 
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.naive_bayes import BernoulliNB # pylint: disable=W0611
+from sklearn.naive_bayes import CategoricalNB # pylint: disable=W0611
+from sklearn.naive_bayes import ComplementNB # pylint: disable=W0611
+from sklearn.naive_bayes import GaussianNB # pylint: disable=W0611
+from sklearn.naive_bayes import MultinomialNB # pylint: disable=W0611
 
-from sklearn.gaussian_process import GaussianProcessClassifier
-from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis # pylint: disable=W0611
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis # pylint: disable=W0611
+
+from sklearn.gaussian_process import GaussianProcessClassifier # pylint: disable=W0611
+from sklearn.gaussian_process import GaussianProcessRegressor # pylint: disable=W0611
 
 # XGBoost library
-from xgboost import XGBRegressor
-from xgboost import XGBClassifier
+from xgboost import XGBRegressor # pylint: disable=W0611
+from xgboost import XGBClassifier # pylint: disable=W0611
 
 # scikit-elm library
-from skelm import ELMRegressor
-from skelm import ELMClassifier
-
-from sklearn.metrics import r2_score, mean_squared_error, accuracy_score, balanced_accuracy_score
+from skelm import ELMRegressor # pylint: disable=W0611
+from skelm import ELMClassifier # pylint: disable=W0611
 
 import numpy as np
 
@@ -95,7 +97,7 @@ DEFAULT_REGRESSION_MODELS = [
 
     ("Linear SVR", LinearSVR(dual="auto"), {}),
 
-    ("Ridge", Ridge(), 
+    ("Ridge", Ridge(),
         {
             "alpha": np.geomspace(1e-7, 10, 10)
         }),
@@ -144,7 +146,7 @@ DEFAULT_CLASSIFICATION_MODELS = [
     ('SGD Classifier', SGDClassifier(random_state=0), {}),
 
     ('Passive Aggressive Classifier', PassiveAggressiveClassifier(random_state=0), {}),
-    
+
     ('K Neighbors Classifier', KNeighborsClassifier(), {}),
 
     ('MLP Classifier', MLPClassifier(random_state=0),
