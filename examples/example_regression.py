@@ -19,7 +19,7 @@ def main():
     hh = HundredHammersRegressor()
 
     # Evaluate the model
-    df_results = hh.evaluate(X, y, optim_hyper=False)
+    df_results = hh.evaluate(X, y, optim_hyper=True, n_grid_points=4)
 
     # Print the results
     print(df_results)

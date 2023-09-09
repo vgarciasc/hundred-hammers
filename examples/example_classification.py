@@ -1,6 +1,7 @@
 from sklearn.datasets import load_iris
 
 from hundred_hammers import HundredHammersClassifier, plot_batch_results, plot_confusion_matrix
+from hundred_hammers.model_zoo import KNeighborsClassifier
 
 import warnings
 from sklearn.exceptions import ConvergenceWarning
