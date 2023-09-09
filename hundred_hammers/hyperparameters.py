@@ -8,7 +8,7 @@ from schema import Schema, Or, Optional, Regex
 from sklearn.base import BaseEstimator
 from .config import hh_logger
 
-# Read the predefined hyperpameter definitions
+# Read the predefined hyperpameter definitions in json format
 _base_path = Path(__file__).parents[0]
 _hp_filepath = next(_base_path.glob("hyperparam_info.json"))
 
@@ -16,7 +16,7 @@ with open(_hp_filepath, "r", encoding="utf-8") as fjson:
     known_hyperparams = json.load(fjson)
     known_models = [k["model"] for k in known_hyperparams]
 
-# Structure that hyperparameter defintions must follow
+# Define the structure that hyperparameter defintions must follow
 hyperparam_def_schema = Schema({
     'model': str,
     Optional(Regex('.*')): Or(

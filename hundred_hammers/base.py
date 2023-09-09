@@ -36,14 +36,14 @@ class HundredHammersBase():
     Implements methods for automatic machine learning like evaluating a list of models
     and performing hyperparameter optimization.
 
-    :param models: 
-    :param metrics:
-    :param eval_metric:
-    :param test_size:
-    :param n_folds:
-    :param n_folds_tune:
-    :param n_evals:
-    :param verbose:
+    :param models: List of models to evaluate.
+    :param metrics: Metrics to use to evaluate the models.
+    :param eval_metric: Target metric to use in hyperparameter optimization.
+    :param test_size: Percentage of the dataset to use for testing.
+    :param n_folds: Number of Cross Validation folds.
+    :param n_folds_tune: Number of Cross Validation folds in grid search.
+    :param n_evals: Number of times to repeat the training of the models.
+    :param verbose: Print extra information while training models.
     """
 
     def __init__(self, models: Iterable[Tuple[str, BaseEstimator, dict]] = None,
@@ -71,7 +71,7 @@ class HundredHammersBase():
         """
         Pandas dataframe reflecting the results of the last evaluation of the models.
 
-        :return:
+        :return: Dataframe with the performance of each of the models.
         """
 
         if self._report.empty:
@@ -85,7 +85,7 @@ class HundredHammersBase():
         """
         List of the best hyperparameters found for each model
 
-        :return:
+        :return: List of the best hyperparameters obtained for each model. 
         """
 
         if not self._best_params:
@@ -100,9 +100,9 @@ class HundredHammersBase():
         """
         Calculate metrics for a given model.
 
-        :param y_true: true values
-        :param y_pred: predicted values
-        :return: a list with the results for each metric
+        :param y_true: True values.
+        :param y_pred: Predicted values.
+        :return: A list with the results for each metric.
         """
 
         return [metric_fn(y_true, y_pred, **metric_params) for _, metric_fn, metric_params in self.metrics]
@@ -112,11 +112,11 @@ class HundredHammersBase():
         """
         Trains every model to obtain its performance.
 
-        :param X:
-        :param y:
-        :param optim_hyper:
-        :param n_grid_points:
-        :return:
+        :param X: Input data.
+        :param y: Target data.
+        :param optim_hyper: Whether or not to optimize the hyperparameters of the models.
+        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :return: Dataframe with the performance of each of the models.
         """
 
         if optim_hyper:
@@ -132,10 +132,10 @@ class HundredHammersBase():
         """
         Obtain the best set of parameters for each of the models.
 
-        :param X:
-        :param y:
-        :param n_grid_points:
-        :return:
+        :param X: Input data.
+        :param y: Target data.
+        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :return: List of the best hyperparameters obtained for each model. 
         """
 
         self._best_params = [self._optimize_model_hyperparams(X, y, model, param_grid, n_grid_points) for _, model, param_grid in self.models]
@@ -147,11 +147,11 @@ class HundredHammersBase():
         """
         Tune a model using cross-validation.
 
-        :param X: input observations
-        :param y: target values
-        :param model: model to tune
-        :param cv_params: parameters to tune (as in GridSearchCV)
-        :return: the tuned model
+        :param X: Input observations.
+        :param y: Target values.
+        :param model: Model to tune.
+        :param cv_params: Parameters to tune (as in GridSearchCV).
+        :return: The tuned model.
         """
 
         best_param_list = self.optimize_hyperparams(X, y, n_grid_points)
@@ -166,9 +166,9 @@ class HundredHammersBase():
         """
         Evaluate all models on a given dataset with their default hyperparameters.
         
-        :param X: input observations
-        :param y: target values
-        :return: a DataFrame with the results
+        :param X: Input observations.
+        :param y: Target values.
+        :return: A DataFrame with the results.
         """
 
         data = []
@@ -192,11 +192,11 @@ class HundredHammersBase():
         """
         Evaluate a model multiple times with different seeds.
 
-        :param X: input observations
-        :param y: target values
-        :param model: model to evaluate
-        :param n_evals: number of times to train the model (each iteration uses a different seed)
-        :return: a tuple with the results for validation train, validation test, train and test
+        :param X: Input observations.
+        :param y: Target values.
+        :param model: Model to evaluate.
+        :param n_evals: Number of times to train the model (each iteration uses a different seed).
+        :return: A tuple with the results for validation train, validation test, train and test.
         """
 
         results_val_train, results_val_test = [], []
@@ -229,11 +229,11 @@ class HundredHammersBase():
         """
         Evaluate a model on a given dataset.
 
-        :param X: input observations
-        :param y: target values
-        :param model: model to evaluate
-        :param seed: random seed
-        :return: a tuple with the results for validation train, validation test, train and test
+        :param X: Input observations.
+        :param y: Target values.
+        :param model: Model to evaluate.
+        :param seed: Random seed.
+        :return: A tuple with the results for validation train, validation test, train and test.
         """
 
         if hasattr(model, 'random_state'):
@@ -273,13 +273,13 @@ class HundredHammersBase():
                                     n_grid_points: int = 10) -> dict:
         """
         Optimize the hyperparameters of a model.
-
-        :param X:
-        :param y:
-        :param model:
-        :param param_grid:
-        :param n_grid_points:
-        :return:
+        
+        :param X: Input data.
+        :param y: Target data.
+        :param model: Model to optimize.
+        :param param_grid: Predefined hyperparameter grid.
+        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :return: The best hyperparameters found for the model.
         """
 
         if not param_grid:
