@@ -173,7 +173,7 @@ class HundredHammersBase():
 
         data = []
         for i, (name, model, _) in enumerate(self.models):
-            hh_logger.info(f"Running model [{i}/{len(self.models)}]: {name}")
+            hh_logger.info(f"Running model [{i+1}/{len(self.models)}]: {name}")
 
             res = self._evaluate_model_cv_multiple_seeds(X, y, model, n_evals=self.n_evals)
 
@@ -203,7 +203,7 @@ class HundredHammersBase():
         results_train, results_test = [], []
 
         for seed in range(n_evals):
-            hh_logger.info(f"Iteration [{seed}/{n_evals}]")
+            hh_logger.debug(f"Iteration [{seed}/{n_evals-1}]")
             res = self._evaluate_model_cv(X, y, model, seed=seed)
 
             results_val_train += res[0]
@@ -214,13 +214,15 @@ class HundredHammersBase():
         results = [results_val_train, results_val_test, results_train, results_test]
 
         if self.verbose:
+            model_info = "Metrics:\n"
             for i, (metric_name, _, _) in enumerate(self.metrics):
-                print(f"{i}: {metric_name}")
+                model_info += f"{i}: {metric_name}\n"
                 for j, data_name in enumerate(["Validation Train", "Validation Test", "Train", "Test"]):
                     avg_res = np.mean([m[i] for m in results[j]])
                     std_res = np.std([m[i] for m in results[j]])
-                    print(f"\t{data_name}: {avg_res:.3f} ± {std_res:.3f}")
-                print()
+                    model_info += f"\t{data_name}: {avg_res:.3f} ± {std_res:.3f}\n"
+                model_info += "\n"
+            hh_logger.info(model_info)
 
         return results
 
