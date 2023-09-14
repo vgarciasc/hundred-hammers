@@ -22,7 +22,7 @@ hyperparam_def_schema = Schema({
     Optional(Regex('.*')): Or(
         {"type": "real", "min": Or(float, int), "max": Or(float, int)},
         {"type": "integer", "min": int, "max": int},
-        {"type": "categorical", "values": [Or(str, int)]},
+        {"type": "categorical", "values": [lambda x: True]}, # Accept a list of any type
     )
 })
 
@@ -47,11 +47,15 @@ def add_known_model_def(def_dict: dict):
     :param def_dict: dictionary that defines the hyperparameters of a new model.
     """
 
-    if hyperparam_def_schema.validate(def_dict):
+    if hyperparam_def_schema.is_valid(def_dict):
         known_hyperparams.append(def_dict)
         known_models.append(def_dict["model"])
     else:
         hh_logger.error("The hyperparameter definition provided has an incorrect format.")
+
+        # Since the schema is incorrect, validating the schema with raise an error with
+        # detailed information about why it failed.
+        hyperparam_def_schema.validate(def_dict)
 
 
 def find_hyperparam_grid(model: BaseEstimator, n_grid_points: int = 10):
@@ -65,6 +69,7 @@ def find_hyperparam_grid(model: BaseEstimator, n_grid_points: int = 10):
     hyperparam_def = find_hyperparam_def(model)
     if hyperparam_def:
         hyperparam_grid = construct_hyperparam_grid(hyperparam_def, n_grid_points)
+        hh_logger.info(f"The hyperparameter grid for the model {type(model).__name__} was generated succesfully.")
     else:
         hyperparam_grid = {}
 
@@ -120,6 +125,6 @@ def construct_hyperparam_grid(hyperparam_grid_def: dict, n_grid_points: int = 10
             model_params[k] = random.sample(values, k=min(len(values), n_grid_points))
 
             # Interpret 'None' as a python null value
-            model_params[k] = [i if i != 'None' else None for i in model_params[k]] 
+            model_params[k] = [i if i != 'None' else None for i in model_params[k]]
 
     return model_params

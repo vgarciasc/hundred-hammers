@@ -13,12 +13,13 @@ def test_verify_predef_params():
     {'model': 'Ex2', 'param1': {'type': 'integer', 'min': 0, 'max': 5}},
     {'model': 'Ex3', 'param1': {'type': 'categorical', 'values': ["manhattan", "euclidean"]}},
     {'model': 'Ex4', 'param1': {'type': 'categorical', 'values': [0, 2, 6]}},
-    {'model': 'Ex5', 'param1': {'type': 'real', 'min': 0, 'max': 10.24},
+    {'model': 'Ex5', 'param1': {'type': 'categorical', 'values': [(10,100,10), (2,10,1), (2,3,3)]}},
+    {'model': 'Ex6', 'param1': {'type': 'real', 'min': 0, 'max': 10.24},
                      'param2': {'type': 'categorical', 'values': ["manhattan", "euclidean"]}},
-    {'model': 'Ex6', 'param1': {'type': 'integer', 'min': 0, 'max': 10},
+    {'model': 'Ex7', 'param1': {'type': 'integer', 'min': 0, 'max': 10},
                      'param2': {'type': 'real', 'min': 0, 'max': 10.24},
                      'param3': {'type': 'categorical', 'values': ["manhattan", "euclidean"]}},
-    {'model': 'Ex7'}
+    {'model': 'Ex8'}
 ])
 def test_add_to_known_hyperparams(new_hyperparams):
     add_known_model_def(new_hyperparams)

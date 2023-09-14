@@ -1,6 +1,9 @@
+# pylint: skip-file
+
 from sklearn.datasets import load_iris
 
-from hundred_hammers import HundredHammersClassifier, plot_batch_results, plot_confusion_matrix
+import logging
+from hundred_hammers import HundredHammersClassifier, plot_batch_results, plot_confusion_matrix, hh_logger
 from hundred_hammers.model_zoo import KNeighborsClassifier
 
 import warnings
@@ -27,4 +30,8 @@ def main():
                           model=KNeighborsClassifier(), title="Iris Dataset", display=False)
 
 if __name__ == "__main__":
+    # hh_logger.setLevel(logging.WARNING)
+    # hh_logger.setLevel(logging.INFO)
+    hh_logger.setLevel(logging.DEBUG)
+
     main()

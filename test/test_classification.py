@@ -1,4 +1,5 @@
 # pylint: skip-file
+import pandas as pd
 import pytest
 import logging
 from sklearn.datasets import load_iris
@@ -24,6 +25,7 @@ def test_complete_default():
 
     # Evaluate the model
     df_results = hh.evaluate(X, y, optim_hyper=False)
+    assert type(df_results) is pd.DataFrame
 
 def test_complete_optim_hyperparams():
     data = load_iris()
@@ -35,3 +37,4 @@ def test_complete_optim_hyperparams():
 
     # Evaluate the model
     df_results = hh.evaluate(X, y, optim_hyper=True, n_grid_points=4)
+    assert type(df_results) is pd.DataFrame
