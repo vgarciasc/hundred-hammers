@@ -5,10 +5,10 @@ from hundred_hammers.model_zoo import DEFAULT_REGRESSION_MODELS, DEFAULT_REGRESS
 
 class HundredHammersRegressor(HundredHammersBase):
     """
-    HundredHammers class specialized on regression models.
+    HundredHammers class specialized in regression models.
     """
 
-    def __init__(self, models=None, metrics=None, eval_metric = None, test_size=0.2,
+    def __init__(self, models=None, metrics=None, eval_metric=None, test_size=0.2,
                  n_folds=5, n_folds_tune=5, n_seeds=10):
         if models is None:
             models = deepcopy(DEFAULT_REGRESSION_MODELS)

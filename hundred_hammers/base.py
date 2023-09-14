@@ -32,7 +32,7 @@ def _process_metric(metric: str | callable) -> Tuple[str, callable, dict]:
     return result
 
 
-class HundredHammersBase():
+class HundredHammersBase:
     """
     Base HundredHammers class. 
     Implements methods for automatic machine learning like evaluating a list of models
@@ -45,7 +45,6 @@ class HundredHammersBase():
     :param n_folds: Number of Cross Validation folds.
     :param n_folds_tune: Number of Cross Validation folds in grid search.
     :param n_evals: Number of times to repeat the training of the models.
-    :param verbose: Print extra information while training models.
     """
 
     def __init__(self, models: Iterable[Tuple[str, BaseEstimator, dict]] = None,
@@ -76,7 +75,7 @@ class HundredHammersBase():
         """
 
         if self._report.empty:
-            hh_logger.warning("No reports available. " \
+            hh_logger.warning("No reports available. "
                               "Use the `evaluate` method to generate a report.")
 
         return self._report
@@ -84,7 +83,7 @@ class HundredHammersBase():
     @property
     def best_params(self) -> List[Tuple[str, dict]]:
         """
-        List of the best hyperparameters found for each model
+        List of the best hyperparameters found for each model.
 
         :return: List of the best hyperparameters obtained for each model. 
         """
@@ -125,11 +124,11 @@ class HundredHammersBase():
     def evaluate(self, X: np.ndarray, y: np.ndarray, optim_hyper: bool = True,
                  n_grid_points: int = 10) -> pd.DataFrame:
         """
-        Trains every model to obtain its performance.
+        Train every model to obtain its performance.
 
         :param X: Input data.
         :param y: Target data.
-        :param optim_hyper: Whether or not to optimize the hyperparameters of the models.
+        :param optim_hyper: Whether to optimize the hyperparameters of the models.
         :param n_grid_points: Number of points to take for each hyperparameter in grid search.
         :return: Dataframe with the performance of each of the models.
         """
@@ -167,8 +166,7 @@ class HundredHammersBase():
 
         :param X: Input observations.
         :param y: Target values.
-        :param model: Model to tune.
-        :param cv_params: Parameters to tune (as in GridSearchCV).
+        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
         :return: The tuned model.
         """
 
@@ -214,7 +212,7 @@ class HundredHammersBase():
     def _evaluate_model_cv_multiple_seeds(self, X: np.ndarray, y: np.ndarray,
                                           model: BaseEstimator, n_evals: int = 10) -> Tuple[list[list[float]], BaseEstimator]:
         """
-        Evaluate a model multiple times with different seeds.
+        Evaluate a model multiple times, with a different seed every time.
 
         :param X: Input observations.
         :param y: Target values.
@@ -315,8 +313,8 @@ class HundredHammersBase():
         """
 
         if not param_grid:
-            hh_logger.info(f"No specified hyperparameter grid for {type(model).__name__}." \
-                            " Generating hyperparameter grid.")
+            hh_logger.info(f"No specified hyperparameter grid for {type(model).__name__}."
+                           " Generating hyperparameter grid.")
             param_grid = find_hyperparam_grid(model, n_grid_points)
 
         eval_metric = lambda y_true, y_pred: self.eval_metric[1](y_true, y_pred,

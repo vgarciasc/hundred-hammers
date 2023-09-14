@@ -32,6 +32,7 @@ def add_known_model_def(def_dict: dict):
     list of know hyperparameters and known models.
 
     The definition should be a dictionary that follows this schema:
+
     {
         'model': <Name>,
         <hyperparam_name>:
@@ -40,6 +41,7 @@ def add_known_model_def(def_dict: dict):
             - {"type": "integer", "min": <number>, "max": <number>},
             - {"type": "categorical", "values": [<number or string>]}
     }
+
     There can be any number of hyperparameters, even 0, they MUST correspond to the
     arguments used in the model constructor or you will get an error in the hyperparameter
     search step.
@@ -58,11 +60,12 @@ def add_known_model_def(def_dict: dict):
         hyperparam_def_schema.validate(def_dict)
 
 
-def find_hyperparam_grid(model: BaseEstimator, n_grid_points: int = 10):
+def find_hyperparam_grid(model: BaseEstimator, n_grid_points: int = 10) -> dict:
     """
     Obtains a grid of hyperparameters to optimize for the model.
 
     :param model: List of model for which we want to find the hyperparameters.
+    :param n_grid_points: Number of values to pick for each hyperparameter.
     :return: List with the hyperparameter definition for each of the model passed
     """
 
