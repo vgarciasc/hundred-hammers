@@ -53,7 +53,7 @@ def main():
     # Get best model from DataFrame
     df_results.sort_values(by="Avg MSE (Validation Test)", ascending=True, inplace=True)
     best_model_name = df_results.iloc[0]["Model"]
-    best_model = [m for m_name, m, _ in hh._trained_models if m_name == best_model_name][0]
+    best_model = [m for m_name, m, _ in hh.trained_models if m_name == best_model_name][0]
 
     # Plot the results
     plot_batch_results(df_results, metric_name="MSE", title="Diabetes")
