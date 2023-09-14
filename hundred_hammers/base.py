@@ -224,9 +224,9 @@ class HundredHammersBase:
         results_val_train, results_val_test = [], []
         results_train, results_test = [], []
 
-        # take `n_evals` random integers between 0 and 10000000 for the seeds
-        for i, seed in enumerate(random.sample(range(10000000), n_evals)):
-            hh_logger.debug(f"Iteration [{i}/{n_evals-1}]")
+        # take `n_evals` different seeds
+        for i, seed in enumerate(range(0, n_evals)):
+            hh_logger.debug(f"Iteration [{i+1}/{n_evals-1}]")
             res = self._evaluate_model_cv(X, y, model, seed=seed)
 
             results_val_train += res[0]
