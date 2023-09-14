@@ -1,110 +1,266 @@
-import os
+from __future__ import annotations
+from typing import Tuple, List, Iterable
+import warnings
+import random
+from copy import deepcopy, copy
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-from matplotlib.patches import Rectangle
-import seaborn as sns
-from scipy.stats import pearsonr
-import math
+from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split, KFold
-from adjustText import adjust_text
+from sklearn.metrics import get_scorer
 from sklearn.model_selection import GridSearchCV
+from .config import hh_logger
+from .metric_alias import metric_alias
+from .hyperparameters import find_hyperparam_grid
 
-class HundredHammersBase():
-    def __init__(self, models=None, metrics=None, test_size=0.2, n_folds=5, n_folds_tune=5, n_seeds=10, verbose=True):
+
+def _process_metric(metric: str | callable) -> Tuple[str, callable, dict]:
+    result = None
+
+    if isinstance(metric, str):
+        # Metric given by its name
+        metric_fn_name = metric
+        if metric in metric_alias:
+            metric_fn_name = metric_alias[metric]
+
+        scorer = get_scorer(metric_fn_name)
+        result = (metric, scorer._score_func, scorer._kwargs)
+    else:
+        # Metric given as a lambda function
+        result = (metric.__name__, metric, {})
+
+    return result
+
+
+class HundredHammersBase:
+    """
+    Base HundredHammers class. 
+    Implements methods for automatic machine learning like evaluating a list of models
+    and performing hyperparameter optimization.
+
+    :param models: List of models to evaluate.
+    :param metrics: Metrics to use to evaluate the models.
+    :param eval_metric: Target metric to use in hyperparameter optimization.
+    :param test_size: Percentage of the dataset to use for testing.
+    :param n_folds: Number of Cross Validation folds.
+    :param n_folds_tune: Number of Cross Validation folds in grid search.
+    :param n_evals: Number of times to repeat the training of the models.
+    """
+
+    def __init__(self, models: Iterable[Tuple[str, BaseEstimator, dict]] = None,
+                 metrics: Iterable[str | callable] = None, eval_metric: str | callable = None,
+                 test_size: float = 0.2, n_folds: int = 5, n_folds_tune: int = 5, n_evals: int = 10):
         self.models = models
-        self.metrics = metrics
+        self.metrics = [_process_metric(metric) for metric in metrics]
+
+        if eval_metric is None:
+            self.eval_metric = self.metrics[0]
+        else:
+            self.eval_metric = _process_metric(eval_metric)
+
         self.test_size = test_size
         self.n_folds = n_folds
         self.n_folds_tune = n_folds_tune
-        self.n_seeds = n_seeds
-        self.verbose = verbose
+        self.n_evals = n_evals
+        self._report = pd.DataFrame()
+        self._best_params = []
+        self._trained_models = self.models
 
-    def calc_metrics(self, y_true, y_pred):
+    @property
+    def report(self) -> pd.DataFrame:
+        """
+        Pandas dataframe reflecting the results of the last evaluation of the models.
+
+        :return: Dataframe with the performance of each of the models.
+        """
+
+        if self._report.empty:
+            hh_logger.warning("No reports available. "
+                              "Use the `evaluate` method to generate a report.")
+
+        return self._report
+
+    @property
+    def best_params(self) -> List[Tuple[str, dict]]:
+        """
+        List of the best hyperparameters found for each model.
+
+        :return: List of the best hyperparameters obtained for each model. 
+        """
+
+        if not self._best_params:
+            hh_logger.warning("No available hyperparameters. "
+                              "Hyperparameter optimization not performed.")
+
+        model_names = [m_tup[0] for m_tup in self.models]
+
+        return list(zip(model_names, self._best_params))
+
+    @property
+    def trained_models(self) -> Iterable[tuple[str, BaseEstimator, dict]]:
+        """
+        Get the trained models.
+
+        :return: A list of models in the form of tuples (name, model, hyperparameters).
+        """
+
+        if self._report.empty:
+            hh_logger.warning("The models were not trained, returning untrained models. "
+                              "Use the `evaluate` method to train them.")
+
+        return self._trained_models
+
+    def _calc_metrics(self, y_true: np.ndarray, y_pred: np.ndarray) -> List[float]:
         """
         Calculate metrics for a given model.
 
-        :param y_true: true values
-        :param y_pred: predicted values
-        :return: a list with the results for each metric
+        :param y_true: True values.
+        :param y_pred: Predicted values.
+        :return: A list with the results for each metric.
         """
 
         return [metric_fn(y_true, y_pred, **metric_params) for _, metric_fn, metric_params in self.metrics]
 
-    def evaluate(self, X, y):
+    def evaluate(self, X: np.ndarray, y: np.ndarray, optim_hyper: bool = True,
+                 n_grid_points: int = 10) -> pd.DataFrame:
         """
-        Evaluate all models on a given dataset.
+        Train every model to obtain its performance.
 
-        :param X: input observations
-        :param y: target values
-        :return: a DataFrame with the results
+        :param X: Input data.
+        :param y: Target data.
+        :param optim_hyper: Whether to optimize the hyperparameters of the models.
+        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :return: Dataframe with the performance of each of the models.
         """
+
+        if optim_hyper:
+            new_models = self.tune_models(X, y, n_grid_points)
+        else:
+            new_models = deepcopy(self.models)
+
+        report, trained_models = self._evaluate_models(X, y, new_models)
+
+        self._report = report
+        self._trained_models = [(m_name, tmodel, param_grid) for (m_name, _, param_grid), tmodel in zip(self.models, trained_models)]
+
+        return report
+
+    def optimize_hyperparams(self, X: np.ndarray, y: np.ndarray, n_grid_points: int = 10) -> List[dict]:
+        """
+        Obtain the best set of parameters for each of the models.
+
+        :param X: Input data.
+        :param y: Target data.
+        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :return: List of the best hyperparameters obtained for each model. 
+        """
+
+        self._best_params = [self._optimize_model_hyperparams(X, y, model, param_grid, n_grid_points) for _, model, param_grid in self.models]
+
+        return self._best_params
+
+    def tune_models(self, X: np.ndarray, y: np.ndarray,
+                    n_grid_points: int = 10) -> List[Tuple[str, BaseEstimator, dict]]:
+        """
+        Tune a model using cross-validation.
+
+        :param X: Input observations.
+        :param y: Target values.
+        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :return: The tuned model.
+        """
+
+        best_param_list = self.optimize_hyperparams(X, y, n_grid_points)
+
+        new_models = []
+        for (model_name, model, model_param_grid), best_params in zip(self.models, best_param_list):
+            # change the parameters without overwriting the model
+            configured_model = copy(model).set_params(**best_params)
+
+            new_models.append((model_name, configured_model, model_param_grid))
+
+        return new_models
+
+    def _evaluate_models(self, X: np.ndarray, y: np.ndarray,
+                         models: Iterable[Tuple[str, BaseEstimator, dict]]) -> Tuple[pd.DataFrame, list[BaseEstimator]]:
+        """
+        Evaluate all models on a given dataset with their default hyperparameters.
+        
+        :param X: Input observations.
+        :param y: Target values.
+        :return: A DataFrame with the results.
+        """
+
         data = []
-        for i, (name, model, cv_params) in enumerate(self.models):
-            print(f"Running model [{i}/{len(self.models)}]: {name}") if self.verbose else None
+        trained_models = []
+        for i, (name, model, _) in enumerate(models):
+            hh_logger.info(f"Running model [{i+1}/{len(models)}]: {name}")
 
-            if cv_params:
-                model = self.tune_model(X, y, model, cv_params)
-
-            res = self.evaluate_model_multiple_seeds(X, y, model, n_evals=self.n_seeds)
+            res, new_model = self._evaluate_model_cv_multiple_seeds(X, y, model, n_evals=self.n_evals)
+            trained_models.append(new_model)
 
             val = {"Model": name}
-            for i, (metric_name, metric, _) in enumerate(self.metrics):
+            for i, (metric_name, _, _) in enumerate(self.metrics):
                 for j, data_name in enumerate(["Validation Train", "Validation Test", "Train", "Test"]):
                     val[f"Avg {metric_name} ({data_name})"] = np.mean([m[i] for m in res[j]])
                     val[f"Std {metric_name} ({data_name})"] = np.std([m[i] for m in res[j]])
 
             data.append(val)
 
-        df_results = pd.DataFrame(data)
-        return df_results
+        return pd.DataFrame(data), trained_models
 
-    def evaluate_model_multiple_seeds(self, X, y, model, n_evals=10, should_print=False):
+    def _evaluate_model_cv_multiple_seeds(self, X: np.ndarray, y: np.ndarray,
+                                          model: BaseEstimator, n_evals: int = 10) -> Tuple[list[list[float]], BaseEstimator]:
         """
-        Evaluate a model multiple times with different seeds.
+        Evaluate a model multiple times, with a different seed every time.
 
-        :param X: input observations
-        :param y: target values
-        :param model: model to evaluate
-        :param n_evals: how many different seeds to use
-        :param should_print: whether to print the results
-        :return: a tuple with the results for validation train, validation test, train and test
+        :param X: Input observations.
+        :param y: Target values.
+        :param model: Model to evaluate.
+        :param n_evals: Number of times to train the model (each iteration uses a different seed).
+        :return: A tuple with the results for validation train, validation test, train and test.
         """
 
         results_val_train, results_val_test = [], []
         results_train, results_test = [], []
 
-        for seed in range(0, n_evals):
-            res = self.evaluate_model(X, y, model, seed=seed)
+        # take `n_evals` random integers between 0 and 10000000 for the seeds
+        for i, seed in enumerate(random.sample(range(10000000), n_evals)):
+            hh_logger.debug(f"Iteration [{i}/{n_evals-1}]")
+            res = self._evaluate_model_cv(X, y, model, seed=seed)
 
             results_val_train += res[0]
             results_val_test += res[1]
             results_train.append(res[2])
             results_test.append(res[3])
 
+        # Take the model trained with the last seed
+        trained_model = res[4]
+
         results = [results_val_train, results_val_test, results_train, results_test]
 
-        if should_print:
-            for i, metric in enumerate(self.metrics):
-                print(f"{i}: {metric}")
-                for j, data_name in enumerate(["Validation Train", "Validation Test", "Train", "Test"]):
-                    avg_res = np.mean([m[i] for m in results[j]])
-                    std_res = np.std([m[i] for m in results[j]])
-                    print(f"\t{data_name}: {avg_res:.3f} ± {std_res:.3f}")
-                print()
+        model_info = "Metrics:\n"
+        for i, (metric_name, _, _) in enumerate(self.metrics):
+            model_info += f"{i}: {metric_name}\n"
+            for j, data_name in enumerate(["Validation Train", "Validation Test", "Train", "Test"]):
+                avg_res = np.mean([m[i] for m in results[j]])
+                std_res = np.std([m[i] for m in results[j]])
+                model_info += f"\t{data_name}: {avg_res:.3f} ± {std_res:.3f}\n"
+            model_info += "\n"
+        hh_logger.info(model_info)
 
-        return results
+        return results, trained_model
 
-    def evaluate_model(self, X, y, model, seed=0):
+    def _evaluate_model_cv(self, X: np.ndarray, y: np.ndarray, model: BaseEstimator,
+                           seed: int = 0) -> tuple[list[list[float]], list[list[float]], list[float], list[float], BaseEstimator]:
         """
         Evaluate a model on a given dataset.
 
-        :param X: input observations
-        :param y: target values
-        :param model: model to evaluate
-        :param seed: random seed
-        :return: a tuple with the results for validation train, validation test, train and test
+        :param X: Input observations.
+        :param y: Target values.
+        :param model: Model to evaluate.
+        :param seed: Random seed.
+        :return: A tuple with the results for validation train, validation test, train and test.
         """
 
         if hasattr(model, 'random_state'):
@@ -115,39 +271,63 @@ class HundredHammersBase():
 
         results_val_train, results_val_test = [], []
 
-        for train_index, test_index in kf.split(X_train, y_train):
+        for split_idx, (train_index, test_index) in enumerate(kf.split(X_train, y_train)):
+            val_model = copy(model)
+            hh_logger.debug(f"Split [{split_idx}/{self.n_folds}]")
+
             X_val_train, X_val_test = X_train[train_index], X_train[test_index]
             y_val_train, y_val_test = y_train[train_index], y_train[test_index]
 
-            model.fit(X_val_train, y_val_train)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                val_model.fit(X_val_train, y_val_train)
 
-            result_val_train = self.calc_metrics(model.predict(X_val_train), y_val_train)
-            result_val_test = self.calc_metrics(model.predict(X_val_test), y_val_test)
+            result_val_train = self._calc_metrics(val_model.predict(X_val_train), y_val_train)
+            result_val_test = self._calc_metrics(val_model.predict(X_val_test), y_val_test)
 
             results_val_train.append(result_val_train)
             results_val_test.append(result_val_test)
 
-        model.fit(X_train, y_train)
-        result_train = self.calc_metrics(model.predict(X_train), y_train)
-        result_test = self.calc_metrics(model.predict(X_test), y_test)
+        trained_model = copy(model)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            trained_model.fit(X_train, y_train)
 
-        return results_val_train, results_val_test, result_train, result_test
+        result_train = self._calc_metrics(trained_model.predict(X_train), y_train)
+        result_test = self._calc_metrics(trained_model.predict(X_test), y_test)
 
-    def tune_model(self, X, y, model, cv_params):
+        return results_val_train, results_val_test, result_train, result_test, trained_model
+
+    def _optimize_model_hyperparams(self, X: np.ndarray, y: np.ndarray,
+                                    model: BaseEstimator, param_grid: dict = None,
+                                    n_grid_points: int = 10) -> dict:
         """
-        Tune a model using cross-validation.
-
-        :param X: input observations
-        :param y: target values
-        :param model: model to tune
-        :param cv_params: parameters to tune (as in GridSearchCV)
-        :return: the tuned model
+        Optimize the hyperparameters of a model.
+        
+        :param X: Input data.
+        :param y: Target data.
+        :param model: Model to optimize.
+        :param param_grid: Predefined hyperparameter grid.
+        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :return: The best hyperparameters found for the model.
         """
 
-        if cv_params is None:
-            return model
+        if not param_grid:
+            hh_logger.info(f"No specified hyperparameter grid for {type(model).__name__}."
+                           " Generating hyperparameter grid.")
+            param_grid = find_hyperparam_grid(model, n_grid_points)
 
-        clf = GridSearchCV(model, cv_params, scoring="neg_mean_squared_error", n_jobs=-1, cv=self.n_folds_tune)
-        clf.fit(X, y)
+        eval_metric = lambda y_true, y_pred: self.eval_metric[1](y_true, y_pred,
+                                                                 **self.eval_metric[2])
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            grid_search_model = GridSearchCV(model, param_grid, scoring=eval_metric,
+                                             n_jobs=-1, cv=self.n_folds_tune)
+            grid_search_model.fit(X, y)
 
-        return clf.best_estimator_
+        results = pd.DataFrame(grid_search_model.cv_results_)
+        results.dropna()
+        best_params_df = results[results["rank_test_score"] == results["rank_test_score"].min()]
+        best_params = best_params_df.head(1)['params'][0]
+
+        return best_params

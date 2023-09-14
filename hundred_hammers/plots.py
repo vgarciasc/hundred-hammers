@@ -6,6 +6,7 @@ from matplotlib.patches import Rectangle
 from sklearn.dummy import DummyClassifier, DummyRegressor
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
+from .metric_alias import metric_alias
 
 
 def plot_confusion_matrix(X, y, model, class_dict, title="", test_size=0.2, seed=0, filepath=None, display=True):
