@@ -90,7 +90,7 @@ class HundredHammersBase():
         """
 
         if not self._best_params:
-            hh_logger.warning("No available hyperparameters. " \
+            hh_logger.warning("No available hyperparameters. "
                               "Hyperparameter optimization not performed.")
 
         model_names = [m_tup[0] for m_tup in self.models]
@@ -98,15 +98,15 @@ class HundredHammersBase():
         return list(zip(model_names, self._best_params))
 
     @property
-    def trained_models(self) -> pd.DataFrame:
+    def trained_models(self) -> Iterable[tuple[str, BaseEstimator, dict]]:
         """
-        Pandas dataframe reflecting the results of the last evaluation of the models.
+        Get the trained models.
 
-        :return: Dataframe with the performance of each of the models.
+        :return: A list of models in the form of tuples (name, model, hyperparameters).
         """
 
         if self._report.empty:
-            hh_logger.warning("The models were not trained, returning untrained models. " \
+            hh_logger.warning("The models were not trained, returning untrained models. "
                               "Use the `evaluate` method to train them.")
 
         return self._trained_models
@@ -184,7 +184,7 @@ class HundredHammersBase():
         return new_models
 
     def _evaluate_models(self, X: np.ndarray, y: np.ndarray,
-                         models: Iterable[Tuple[str, BaseEstimator, dict]]) -> Tuple[pd.DataFrame, BaseEstimator]:
+                         models: Iterable[Tuple[str, BaseEstimator, dict]]) -> Tuple[pd.DataFrame, list[BaseEstimator]]:
         """
         Evaluate all models on a given dataset with their default hyperparameters.
         
@@ -212,7 +212,7 @@ class HundredHammersBase():
         return pd.DataFrame(data), trained_models
 
     def _evaluate_model_cv_multiple_seeds(self, X: np.ndarray, y: np.ndarray,
-                                          model: BaseEstimator, n_evals: int = 10) -> Tuple[List[int], BaseEstimator]:
+                                          model: BaseEstimator, n_evals: int = 10) -> Tuple[list[list[float]], BaseEstimator]:
         """
         Evaluate a model multiple times with different seeds.
 
@@ -241,7 +241,6 @@ class HundredHammersBase():
 
         results = [results_val_train, results_val_test, results_train, results_test]
 
-
         model_info = "Metrics:\n"
         for i, (metric_name, _, _) in enumerate(self.metrics):
             model_info += f"{i}: {metric_name}\n"
@@ -255,7 +254,7 @@ class HundredHammersBase():
         return results, trained_model
 
     def _evaluate_model_cv(self, X: np.ndarray, y: np.ndarray, model: BaseEstimator,
-                           seed: int = 0) -> Tuple[float,float,float,float,BaseEstimator]:
+                           seed: int = 0) -> tuple[list[list[float]], list[list[float]], list[float], list[float], BaseEstimator]:
         """
         Evaluate a model on a given dataset.
 
