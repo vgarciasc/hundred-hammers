@@ -1,5 +1,7 @@
 # Hundred Hammers
 
+> "At least *one* of them is bound to do the trick."
+
 *Hundred Hammers* is a Python package that helps you batch-test ML models in a dataset. It can be used out-of-the-box
 to run most popular ML models and metrics, or it can be easily extended to include your own.
 
