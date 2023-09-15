@@ -45,11 +45,13 @@ class HundredHammersBase:
     :param n_folds: Number of Cross Validation folds.
     :param n_folds_tune: Number of Cross Validation folds in grid search.
     :param n_evals: Number of times to repeat the training of the models.
+    :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
     """
 
     def __init__(self, models: Iterable[Tuple[str, BaseEstimator, dict]] = None,
                  metrics: Iterable[str | callable] = None, eval_metric: str | callable = None,
-                 test_size: float = 0.2, n_folds: int = 5, n_folds_tune: int = 5, n_evals: int = 10):
+                 test_size: float = 0.2, n_folds: int = 5, n_folds_tune: int = 5, n_evals: int = 10,
+                 seed_strategy: str = 'sequential'):
         self.models = models
         self.metrics = [_process_metric(metric) for metric in metrics]
 
@@ -62,6 +64,7 @@ class HundredHammersBase:
         self.n_folds = n_folds
         self.n_folds_tune = n_folds_tune
         self.n_evals = n_evals
+        self.seed_strategy = seed_strategy
         self._report = pd.DataFrame()
         self._best_params = []
         self._trained_models = self.models
@@ -224,9 +227,16 @@ class HundredHammersBase:
         results_val_train, results_val_test = [], []
         results_train, results_test = [], []
 
-        # take `n_evals` random integers between 0 and 10000000 for the seeds
-        for i, seed in enumerate(random.sample(range(10000000), n_evals)):
-            hh_logger.debug(f"Iteration [{i}/{n_evals-1}]")
+        if self.seed_strategy == "random":
+            seeds = np.random.randint(0, 1000000, n_evals)
+        elif self.seed_strategy == "sequential":
+            seeds = range(0, n_evals)
+        else:
+            raise ValueError(f"Unknown seed strategy: {self.seed_strategy}")
+
+        # take `n_evals` different seeds
+        for i, seed in enumerate(seeds):
+            hh_logger.debug(f"Iteration [{i+1}/{n_evals-1}]")
             res = self._evaluate_model_cv(X, y, model, seed=seed)
 
             results_val_train += res[0]
