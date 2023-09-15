@@ -9,6 +9,16 @@ from sklearn.model_selection import train_test_split
 from .metric_alias import metric_alias
 
 
+def _save_plot(filepath, display, dpi=200):
+    if filepath is not None:
+        plt.savefig(filepath, dpi=dpi)
+        if not display:
+            plt.close()
+    else:
+        if display:
+            plt.show()
+
+
 def plot_confusion_matrix(X, y, model, class_dict, title="", test_size=0.2, seed=0, filepath=None, display=True):
     """
     Plot confusion matrix for a given model.
@@ -61,13 +71,7 @@ def plot_confusion_matrix(X, y, model, class_dict, title="", test_size=0.2, seed
     plt.suptitle(title, fontweight='bold', fontsize=14)
     plt.tight_layout()
 
-    if filepath is not None:
-        plt.savefig(filepath, dpi=200)
-        if not display:
-            plt.close()
-    else:
-        if display:
-            plt.show()
+    _save_plot(filepath, display)
 
 def plot_regression_pred(X, y, models, y_label="", title="", test_size=0.2,
                          metric=None, seed=0, filepath=None, display=True):
@@ -130,13 +134,7 @@ def plot_regression_pred(X, y, models, y_label="", title="", test_size=0.2,
 
     plt.tight_layout()
 
-    if filepath is not None:
-        plt.savefig(filepath, dpi=200)
-        if not display:
-            plt.close()
-    else:
-        if display:
-            plt.show()
+    _save_plot(filepath, display)
 
 def plot_batch_results(df, metric_name, title="", filepath=None, display=True):
     """
@@ -171,10 +169,44 @@ def plot_batch_results(df, metric_name, title="", filepath=None, display=True):
 
     plt.tight_layout()
 
-    if filepath is not None:
-        plt.savefig(filepath, dpi=200)
-        if not display:
-            plt.close()
-    else:
-        if display:
-            plt.show()
+    _save_plot(filepath, display)
+
+
+def plot_multiple_datasets(df, metric_name, id_col="Code", title="", line_at_0=False,
+                           higher_is_better=True, filepath=None, display=True):
+    """
+    Plot the results of the batch evaluation
+
+    :param df: results dataframe
+    :param metric_name: metric to plot
+    :param id_col: column containing the ID of the dataset
+    :param title: title of plot
+    :param line_at_0: determines if a line is plotted at 0
+    :param higher_is_better: determines if higher values are better
+    :param filepath: filepath to save plot
+    :param display: whether to display the plot
+    """
+
+    _df = df.sort_values(by=metric_name, ascending=(not higher_is_better))
+
+    plt.figure(figsize=(10, 8))
+    ax = plt.gca()
+
+    sns.scatterplot(data=_df, x=id_col, y=metric_name, s=100, hue=id_col, legend=False)
+
+    ax.set_xlabel("")
+    ax.set_ylabel(metric_name)
+
+    if line_at_0:
+        ax.axhline(0, lw=4, color='k', zorder=-1)
+
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)
+
+    ax.grid()
+    ax.set_facecolor("#eeeeee")
+
+    plt.suptitle(title, fontweight='bold')
+    plt.tight_layout()
+
+    _save_plot(filepath, display)
