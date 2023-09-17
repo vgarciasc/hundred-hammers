@@ -12,6 +12,8 @@ from sklearn.model_selection import GridSearchCV
 from .config import hh_logger
 from .metric_alias import metric_alias
 from .hyperparameters import find_hyperparam_grid
+from rich.progress import Progress, TaskID, TimeElapsedColumn, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, \
+    TimeRemainingColumn, MofNCompleteColumn
 
 
 def _process_metric(metric: str | callable) -> Tuple[str, callable, dict]:
@@ -45,11 +47,13 @@ class HundredHammersBase:
     :param n_folds: Number of Cross Validation folds.
     :param n_folds_tune: Number of Cross Validation folds in grid search.
     :param n_evals: Number of times to repeat the training of the models.
+    :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
     """
 
     def __init__(self, models: Iterable[Tuple[str, BaseEstimator, dict]] = None,
                  metrics: Iterable[str | callable] = None, eval_metric: str | callable = None,
-                 test_size: float = 0.2, n_folds: int = 5, n_folds_tune: int = 5, n_evals: int = 10):
+                 test_size: float = 0.2, n_folds: int = 5, n_folds_tune: int = 5, n_evals: int = 10,
+                 show_progress_bar: bool = True, seed_strategy: str = 'sequential'):
         self.models = models
         self.metrics = [_process_metric(metric) for metric in metrics]
 
@@ -62,6 +66,8 @@ class HundredHammersBase:
         self.n_folds = n_folds
         self.n_folds_tune = n_folds_tune
         self.n_evals = n_evals
+        self.show_progress_bar = show_progress_bar
+        self.seed_strategy = seed_strategy
         self._report = pd.DataFrame()
         self._best_params = []
         self._trained_models = self.models
@@ -155,7 +161,16 @@ class HundredHammersBase:
         :return: List of the best hyperparameters obtained for each model. 
         """
 
-        self._best_params = [self._optimize_model_hyperparams(X, y, model, param_grid, n_grid_points) for _, model, param_grid in self.models]
+        self._best_params = []
+
+        with self._make_progress_bar() as progress:
+            task = progress.add_task("[bold]Optimizing hyperparameters...", total=len(self.models))
+
+            for name, model, param_grid in self.models:
+                best_params_model = self._optimize_model_hyperparams(X, y, model, param_grid, n_grid_points)
+                self._best_params.append(best_params_model)
+
+                progress.update(task, advance=1, description=f"[bold]Tuning:[/bold] {name}")
 
         return self._best_params
 
@@ -193,24 +208,30 @@ class HundredHammersBase:
 
         data = []
         trained_models = []
-        for i, (name, model, _) in enumerate(models):
-            hh_logger.info(f"Running model [{i+1}/{len(models)}]: {name}")
 
-            res, new_model = self._evaluate_model_cv_multiple_seeds(X, y, model, n_evals=self.n_evals)
-            trained_models.append(new_model)
+        with self._make_progress_bar() as progress:
+            for i, (name, model, _) in enumerate(models):
+                hh_logger.info(f"Running model [{i+1}/{len(models)}]: {name}")
+                task = progress.add_task(f"[bold]Evaluating:[/bold] {name} [bright_black][{i+1}/{len(models)}][/bright_black]", total=self.n_evals)
 
-            val = {"Model": name}
-            for i, (metric_name, _, _) in enumerate(self.metrics):
-                for j, data_name in enumerate(["Validation Train", "Validation Test", "Train", "Test"]):
-                    val[f"Avg {metric_name} ({data_name})"] = np.mean([m[i] for m in res[j]])
-                    val[f"Std {metric_name} ({data_name})"] = np.std([m[i] for m in res[j]])
+                res, new_model = self._evaluate_model_cv_multiple_seeds(X, y, model, n_evals=self.n_evals,
+                                                                        progress=progress, task=task)
+                trained_models.append(new_model)
 
-            data.append(val)
+                val = {"Model": name}
+                for i, (metric_name, _, _) in enumerate(self.metrics):
+                    for j, data_name in enumerate(["Validation Train", "Validation Test", "Train", "Test"]):
+                        val[f"Avg {metric_name} ({data_name})"] = np.mean([m[i] for m in res[j]])
+                        val[f"Std {metric_name} ({data_name})"] = np.std([m[i] for m in res[j]])
+
+                data.append(val)
 
         return pd.DataFrame(data), trained_models
 
     def _evaluate_model_cv_multiple_seeds(self, X: np.ndarray, y: np.ndarray,
-                                          model: BaseEstimator, n_evals: int = 10) -> Tuple[list[list[float]], BaseEstimator]:
+                                          model: BaseEstimator, n_evals: int = 10,
+                                          progress: Progress = None,
+                                          task: TaskID = None) -> Tuple[list[list[float]], BaseEstimator]:
         """
         Evaluate a model multiple times, with a different seed every time.
 
@@ -224,15 +245,25 @@ class HundredHammersBase:
         results_val_train, results_val_test = [], []
         results_train, results_test = [], []
 
-        # take `n_evals` random integers between 0 and 10000000 for the seeds
-        for i, seed in enumerate(random.sample(range(10000000), n_evals)):
-            hh_logger.debug(f"Iteration [{i}/{n_evals-1}]")
+        if self.seed_strategy == "random":
+            seeds = np.random.randint(0, 1000000, n_evals)
+        elif self.seed_strategy == "sequential":
+            seeds = range(0, n_evals)
+        else:
+            raise ValueError(f"Unknown seed strategy: {self.seed_strategy}")
+
+        # take `n_evals` different seeds
+        for i, seed in enumerate(seeds):
+            hh_logger.debug(f"Iteration [{i+1}/{n_evals-1}]")
             res = self._evaluate_model_cv(X, y, model, seed=seed)
 
             results_val_train += res[0]
             results_val_test += res[1]
             results_train.append(res[2])
             results_test.append(res[3])
+
+            if task is not None:
+                progress.update(task, advance=1)
 
         # Take the model trained with the last seed
         trained_model = res[4]
@@ -331,3 +362,14 @@ class HundredHammersBase:
         best_params = best_params_df.head(1)['params'][0]
 
         return best_params
+
+    def _make_progress_bar(self):
+        return Progress(
+            BarColumn(),
+            TaskProgressColumn(),
+            TimeRemainingColumn(),
+            TimeElapsedColumn(),
+            MofNCompleteColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            disable=(not self.show_progress_bar)
+        )

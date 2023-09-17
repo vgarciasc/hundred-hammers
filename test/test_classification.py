@@ -38,3 +38,18 @@ def test_complete_optim_hyperparams():
     # Evaluate the model
     df_results = hh.evaluate(X, y, optim_hyper=True, n_grid_points=4)
     assert type(df_results) is pd.DataFrame
+
+def test_seed_strategy():
+    data = load_iris()
+    X = data.data
+    y = data.target
+
+    df_results_1 = HundredHammersClassifier(seed_strategy='sequential').evaluate(X, y, optim_hyper=False)
+    df_results_2 = HundredHammersClassifier(seed_strategy='sequential').evaluate(X, y, optim_hyper=False)
+
+    assert df_results_1.equals(df_results_2)
+
+    df_results_3 = HundredHammersClassifier(seed_strategy='random').evaluate(X, y, optim_hyper=False)
+    df_results_4 = HundredHammersClassifier(seed_strategy='random').evaluate(X, y, optim_hyper=False)
+
+    assert not df_results_3.equals(df_results_4)
