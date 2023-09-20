@@ -1,3 +1,5 @@
+![](multimedia/logo.png)
+
 # Hundred Hammers
 
 > "At least *one* of them is bound to do the trick."
