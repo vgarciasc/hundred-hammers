@@ -1,26 +1,7 @@
 hundred\_hammers package
 ========================
 
-Submodules
-----------
-
-hundred\_hammers.base module
-----------------------------
-
-.. automodule:: hundred_hammers.base
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hundred\_hammers.classifier module
-----------------------------------
-
-.. automodule:: hundred_hammers.classifier
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hundred\_hammers.config module
+Config module
 ------------------------------
 
 .. automodule:: hundred_hammers.config
@@ -28,23 +9,7 @@ hundred\_hammers.config module
    :undoc-members:
    :show-inheritance:
 
-hundred\_hammers.hyperparameters module
----------------------------------------
-
-.. automodule:: hundred_hammers.hyperparameters
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hundred\_hammers.metric\_alias module
--------------------------------------
-
-.. automodule:: hundred_hammers.metric_alias
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hundred\_hammers.model\_zoo module
+Model\_zoo module
 ----------------------------------
 
 .. automodule:: hundred_hammers.model_zoo
@@ -52,15 +17,23 @@ hundred\_hammers.model\_zoo module
    :undoc-members:
    :show-inheritance:
 
-hundred\_hammers.plots module
------------------------------
+Base module
+----------------------------
 
-.. automodule:: hundred_hammers.plots
+.. automodule:: hundred_hammers.base
    :members:
    :undoc-members:
    :show-inheritance:
 
-hundred\_hammers.regressor module
+Classifier module
+----------------------------------
+
+.. automodule:: hundred_hammers.classifier
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Regressor module
 ---------------------------------
 
 .. automodule:: hundred_hammers.regressor
@@ -68,18 +41,34 @@ hundred\_hammers.regressor module
    :undoc-members:
    :show-inheritance:
 
-hundred\_hammers.utils module
------------------------------
+Hyperparameters module
+---------------------------------------
 
-.. automodule:: hundred_hammers.utils
+.. automodule:: hundred_hammers.hyperparameters
    :members:
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
+Metric\_alias module
+-------------------------------------
 
-.. automodule:: hundred_hammers
+.. automodule:: hundred_hammers.metric_alias
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Plots module
+-----------------------------
+
+.. automodule:: hundred_hammers.plots
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Utils module
+-----------------------------
+
+.. automodule:: hundred_hammers.utils
    :members:
    :undoc-members:
    :show-inheritance:
