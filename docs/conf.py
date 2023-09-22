@@ -50,8 +50,7 @@ autodoc_member_order = 'bysource'
 # a list of builtin themes.
 
 html_logo = "../multimedia/logo_outline.png"
-html_theme = 'nameko'
-html_theme_path = [sphinx_nameko_theme.get_html_theme_path()]
+html_theme = 'pydata_sphinx_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
