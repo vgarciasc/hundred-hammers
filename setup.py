@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='hundred_hammers',
-      version='0.1',
+      version='0.1.1',
       description='Batch execution of ML models to a dataset',
       url='http://github.com/vgarciasc/hundred_hammers',
       author='Vinicius Garcia',
