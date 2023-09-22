@@ -12,8 +12,7 @@ from sklearn.model_selection import GridSearchCV
 from .config import hh_logger
 from .metric_alias import metric_alias
 from .hyperparameters import find_hyperparam_grid
-from rich.progress import Progress, TaskID, TimeElapsedColumn, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, \
-    TimeRemainingColumn, MofNCompleteColumn
+from tqdm import tqdm
 
 
 def _process_metric(metric: str | callable) -> Tuple[str, callable, dict]:
@@ -163,14 +162,10 @@ class HundredHammersBase:
 
         self._best_params = []
 
-        with self._make_progress_bar() as progress:
-            task = progress.add_task("[bold]Optimizing hyperparameters...", total=len(self.models))
-
-            for name, model, param_grid in self.models:
-                best_params_model = self._optimize_model_hyperparams(X, y, model, param_grid, n_grid_points)
-                self._best_params.append(best_params_model)
-
-                progress.update(task, advance=1, description=f"[bold]Tuning:[/bold] {name}")
+        for name, model, param_grid in tqdm(self.models, desc="Optimizing hyperparameters...",
+                                            leave=False, disable=not self.show_progress_bar):
+            best_params_model = self._optimize_model_hyperparams(X, y, model, param_grid, n_grid_points)
+            self._best_params.append(best_params_model)
 
         return self._best_params
 
@@ -209,29 +204,25 @@ class HundredHammersBase:
         data = []
         trained_models = []
 
-        with self._make_progress_bar() as progress:
-            for i, (name, model, _) in enumerate(models):
-                hh_logger.info(f"Running model [{i+1}/{len(models)}]: {name}")
-                task = progress.add_task(f"[bold]Evaluating:[/bold] {name} [bright_black][{i+1}/{len(models)}][/bright_black]", total=self.n_evals)
+        for i, (name, model, _) in enumerate(tqdm(models, desc="Evaluating models...",
+                                                  disable=not self.show_progress_bar)):
+            hh_logger.info(f"Running model [{i+1}/{len(models)}]: {name}")
 
-                res, new_model = self._evaluate_model_cv_multiple_seeds(X, y, model, n_evals=self.n_evals,
-                                                                        progress=progress, task=task)
-                trained_models.append(new_model)
+            res, new_model = self._evaluate_model_cv_multiple_seeds(X, y, model, n_evals=self.n_evals)
+            trained_models.append(new_model)
 
-                val = {"Model": name}
-                for i, (metric_name, _, _) in enumerate(self.metrics):
-                    for j, data_name in enumerate(["Validation Train", "Validation Test", "Train", "Test"]):
-                        val[f"Avg {metric_name} ({data_name})"] = np.mean([m[i] for m in res[j]])
-                        val[f"Std {metric_name} ({data_name})"] = np.std([m[i] for m in res[j]])
+            val = {"Model": name}
+            for i, (metric_name, _, _) in enumerate(self.metrics):
+                for j, data_name in enumerate(["Validation Train", "Validation Test", "Train", "Test"]):
+                    val[f"Avg {metric_name} ({data_name})"] = np.mean([m[i] for m in res[j]])
+                    val[f"Std {metric_name} ({data_name})"] = np.std([m[i] for m in res[j]])
 
-                data.append(val)
+            data.append(val)
 
         return pd.DataFrame(data), trained_models
 
     def _evaluate_model_cv_multiple_seeds(self, X: np.ndarray, y: np.ndarray,
-                                          model: BaseEstimator, n_evals: int = 10,
-                                          progress: Progress = None,
-                                          task: TaskID = None) -> Tuple[list[list[float]], BaseEstimator]:
+                                          model: BaseEstimator, n_evals: int = 10) -> Tuple[list[list[float]], BaseEstimator]:
         """
         Evaluate a model multiple times, with a different seed every time.
 
@@ -253,7 +244,8 @@ class HundredHammersBase:
             raise ValueError(f"Unknown seed strategy: {self.seed_strategy}")
 
         # take `n_evals` different seeds
-        for i, seed in enumerate(seeds):
+        for i, seed in enumerate(tqdm(seeds, desc=f"        {model.__class__.__name__}",
+                                      leave=False, disable=not self.show_progress_bar)):
             hh_logger.debug(f"Iteration [{i+1}/{n_evals-1}]")
             res = self._evaluate_model_cv(X, y, model, seed=seed)
 
@@ -261,9 +253,6 @@ class HundredHammersBase:
             results_val_test += res[1]
             results_train.append(res[2])
             results_test.append(res[3])
-
-            if task is not None:
-                progress.update(task, advance=1)
 
         # Take the model trained with the last seed
         trained_model = res[4]
@@ -362,14 +351,3 @@ class HundredHammersBase:
         best_params = best_params_df.head(1)['params'][0]
 
         return best_params
-
-    def _make_progress_bar(self):
-        return Progress(
-            BarColumn(),
-            TaskProgressColumn(),
-            TimeRemainingColumn(),
-            TimeElapsedColumn(),
-            MofNCompleteColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            disable=(not self.show_progress_bar)
-        )
