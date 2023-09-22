@@ -16,8 +16,8 @@ import sphinx_nameko_theme
 sys.path.insert(0, os.path.abspath('..'))
 
 project = 'hundred_hammers'
-copyright = '2023, Vinicius Garcia'
-author = 'Vinicius Garcia'
+copyright = '2023, Vinícius Garcia'
+author = 'Vinícius Garcia'
 release = '0.1'
 
 # -- General configuration ---------------------------------------------------
