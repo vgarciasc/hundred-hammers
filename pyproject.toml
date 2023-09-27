@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hundred-hammers"
-version = "1.0.4"
+version = "1.0.5"
 authors = [
   { name="Vinícius Garcia", email="vinizinho@vinizinho.net" },
 ]
