@@ -21,7 +21,7 @@ Clone the repository and run `pip install .` in the root directory.
 
 ## Examples
 
-Full examples can be found in the `test` directory. Here's a simple example of how to use Hundred Hammers to run a
+Full examples can be found in the `examples` directory. As an appetizer, here's a simple one of how to use Hundred Hammers to run a
 batch classification on Iris data:
 
 ```python
