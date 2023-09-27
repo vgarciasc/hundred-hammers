@@ -1,4 +1,15 @@
-[
+from schema import Schema, Or, Optional, Regex
+
+hyperparam_def_schema = Schema({
+    'model': str,
+    Optional(Regex('.*')): Or(
+        {"type": "real", "min": Or(float, int), "max": Or(float, int)},
+        {"type": "integer", "min": int, "max": int},
+        {"type": "categorical", "values": [lambda x: True]}, # Accept a list of any type
+    )
+})
+
+known_hyperparams = [
     {
         "model": "DummyClassifier",
         "strategy": {
@@ -446,3 +457,5 @@
         }
     }
 ]
+
+known_models = [k["model"] for k in known_hyperparams]

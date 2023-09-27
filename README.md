@@ -40,7 +40,7 @@ plot_batch_results(df_results, metric_name="Accuracy", title="Iris Dataset")
 
 This already gives us a DataFrame with the results from several different models, and a nice plot of the results:
 
-<img src="multimedia/iris_batch.png" width=600px;>
+![](multimedia/iris_batch.png)
 
 ### Other plots
 
@@ -57,7 +57,7 @@ plot_confusion_matrix(X, y, class_dict={0: "Setosa", 1: "Versicolor", 2: "Virgin
                       model=DecisionTreeClassifier(), title="Iris Dataset")
 ```
 
-<img src="multimedia/iris_cm.png" width=600px;>
+![](multimedia/iris_cm.png)
 
 ```python
 from hundred_hammers.plots import plot_regression_pred
@@ -71,7 +71,7 @@ plot_regression_pred(X, y, models=[DummyRegressor(strategy='median'), best_model
                      title="Diabetes", y_label="Diabetes (Value)")
 ```
 
-<img src="multimedia/diabetes_pred.png" width=600px;>
+![](multimedia/diabetes_pred.png)
 
 Finally, it is also possible to compare different datasets and compare their results (each dot is a model).
 
@@ -94,4 +94,4 @@ df_results = pd.concat(df, ignore_index=True)
 plot_multiple_datasets(df_results, metric_name="Avg ACC (Validation Test)", id_col="Dataset", title="Iris Dataset", display=True)
 ```
 
-<img src="multimedia/dataset_batch.png" width=600px;>
+![](multimedia/dataset_batch.png)
