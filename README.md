@@ -17,7 +17,7 @@ to run most popular ML models and metrics, or it can be easily extended to inclu
 
 ## Installation
 
-Clone the repository and run `pip install .` in the root directory. 
+The recommended way to install the library is through `pip install hundred_hammers`. However, if you want to fiddle around with the repo yourself, you can clone this repository, and run `pip install -e hundred_hammers/`
 
 ## Examples
 
