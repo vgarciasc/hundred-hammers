@@ -19,6 +19,10 @@ to run most popular ML models and metrics, or it can be easily extended to inclu
 
 The recommended way to install the library is through `pip install hundred_hammers`. However, if you want to fiddle around with the repo yourself, you can clone this repository, and run `pip install -e hundred_hammers/`
 
+## Documentation
+
+The documentation can be found in [ReadTheDocs](https://hundred-hammers.readthedocs.io/en/latest/).
+
 ## Examples
 
 Full examples can be found in the `examples` directory. As an appetizer, here's a simple one of how to use Hundred Hammers to run a
