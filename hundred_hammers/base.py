@@ -302,8 +302,8 @@ class HundredHammersBase:
                 warnings.simplefilter("ignore")
                 val_model.fit(X_val_train, y_val_train)
 
-            result_val_train = self._calc_metrics(val_model.predict(X_val_train), y_val_train)
-            result_val_test = self._calc_metrics(val_model.predict(X_val_test), y_val_test)
+            result_val_train = self._calc_metrics(y_val_train, val_model.predict(X_val_train))
+            result_val_test = self._calc_metrics(y_val_test, val_model.predict(X_val_test))
 
             results_val_train.append(result_val_train)
             results_val_test.append(result_val_test)
@@ -313,8 +313,8 @@ class HundredHammersBase:
             warnings.simplefilter("ignore")
             trained_model.fit(X_train, y_train)
 
-        result_train = self._calc_metrics(trained_model.predict(X_train), y_train)
-        result_test = self._calc_metrics(trained_model.predict(X_test), y_test)
+        result_train = self._calc_metrics(y_train, trained_model.predict(X_train))
+        result_test = self._calc_metrics(y_test, trained_model.predict(X_test))
 
         return results_val_train, results_val_test, result_train, result_test, trained_model
 
