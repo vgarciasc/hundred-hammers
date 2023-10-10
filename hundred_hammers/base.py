@@ -191,6 +191,9 @@ class HundredHammersBase:
 
         return new_models
 
+    def _stratify_array(self, y):
+        return y if self.__class__.__name__ == "HundredHammersClassifier" else None
+
     def _evaluate_models(self, X: np.ndarray, y: np.ndarray,
                          models: Iterable[Tuple[str, BaseEstimator, dict]]) -> Tuple[pd.DataFrame, list[BaseEstimator]]:
         """
@@ -206,7 +209,7 @@ class HundredHammersBase:
 
         for i, (name, model, _) in enumerate(tqdm(models, desc="Evaluating models...",
                                                   disable=not self.show_progress_bar)):
-            hh_logger.info(f"Running model [{i+1}/{len(models)}]: {name}")
+            hh_logger.info(f"Running model [{i + 1}/{len(models)}]: {name}")
 
             res, new_model = self._evaluate_model_cv_multiple_seeds(X, y, model, n_evals=self.n_evals)
             trained_models.append(new_model)
@@ -246,7 +249,7 @@ class HundredHammersBase:
         # take `n_evals` different seeds
         for i, seed in enumerate(tqdm(seeds, desc=f"        {model.__class__.__name__}",
                                       leave=False, disable=not self.show_progress_bar)):
-            hh_logger.debug(f"Iteration [{i+1}/{n_evals-1}]")
+            hh_logger.debug(f"Iteration [{i + 1}/{n_evals - 1}]")
             res = self._evaluate_model_cv(X, y, model, seed=seed)
 
             results_val_train += res[0]
@@ -287,11 +290,12 @@ class HundredHammersBase:
             model.random_state = seed
 
         kf = KFold(n_splits=self.n_folds, shuffle=True, random_state=seed)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=seed)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=seed,
+                                                            stratify=self._stratify_array(y))
 
         results_val_train, results_val_test = [], []
 
-        for split_idx, (train_index, test_index) in enumerate(kf.split(X_train, y_train)):
+        for split_idx, (train_index, test_index) in enumerate(kf.split(X_train, y_train, self._stratify_array(y_train))):
             val_model = copy(model)
             hh_logger.debug(f"Split [{split_idx}/{self.n_folds}]")
 
