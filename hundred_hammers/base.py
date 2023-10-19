@@ -1,12 +1,11 @@
 from __future__ import annotations
 from typing import Tuple, List, Iterable
 import warnings
-import random
 from copy import deepcopy, copy
 import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import get_scorer
 from sklearn.model_selection import GridSearchCV
 from .config import hh_logger
@@ -43,7 +42,8 @@ class HundredHammersBase:
     :param metrics: Metrics to use to evaluate the models.
     :param eval_metric: Target metric to use in hyperparameter optimization.
     :param test_size: Percentage of the dataset to use for testing.
-    :param n_folds: Number of Cross Validation folds.
+    :param cross_validator: Cross Validator to use in the evaluation.
+    :param cross_validator_params: Parameters for the Cross Validator.
     :param n_folds_tune: Number of Cross Validation folds in grid search.
     :param n_evals: Number of times to repeat the training of the models.
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
@@ -51,7 +51,8 @@ class HundredHammersBase:
 
     def __init__(self, models: Iterable[Tuple[str, BaseEstimator, dict]] = None,
                  metrics: Iterable[str | callable] = None, eval_metric: str | callable = None,
-                 test_size: float = 0.2, n_folds: int = 5, n_folds_tune: int = 5, n_evals: int = 10,
+                 cross_validator: callable = None, cross_validator_params: dict = None,
+                 test_size: float = 0.2, n_folds_tune: int = 5, n_evals: int = 10,
                  show_progress_bar: bool = True, seed_strategy: str = 'sequential'):
         self.models = models
         self.metrics = [_process_metric(metric) for metric in metrics]
@@ -61,8 +62,9 @@ class HundredHammersBase:
         else:
             self.eval_metric = _process_metric(eval_metric)
 
+        self.cross_validator = cross_validator
+        self.cross_validator_params = cross_validator_params
         self.test_size = test_size
-        self.n_folds = n_folds
         self.n_folds_tune = n_folds_tune
         self.n_evals = n_evals
         self.show_progress_bar = show_progress_bar
@@ -191,9 +193,6 @@ class HundredHammersBase:
 
         return new_models
 
-    def _stratify_array(self, y):
-        return y if self.__class__.__name__ == "HundredHammersClassifier" else None
-
     def _evaluate_models(self, X: np.ndarray, y: np.ndarray,
                          models: Iterable[Tuple[str, BaseEstimator, dict]]) -> Tuple[pd.DataFrame, list[BaseEstimator]]:
         """
@@ -289,15 +288,16 @@ class HundredHammersBase:
         if hasattr(model, 'random_state'):
             model.random_state = seed
 
-        kf = KFold(n_splits=self.n_folds, shuffle=True, random_state=seed)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=seed,
+        cv = self._create_cross_validator(seed)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size,
+                                                            random_state=seed,
                                                             stratify=self._stratify_array(y))
 
         results_val_train, results_val_test = [], []
 
-        for split_idx, (train_index, test_index) in enumerate(kf.split(X_train, y_train, self._stratify_array(y_train))):
+        for split_idx, (train_index, test_index) in enumerate(cv.split(X_train, y_train)):
             val_model = copy(model)
-            hh_logger.debug(f"Split [{split_idx}/{self.n_folds}]")
+            hh_logger.debug(f"Split [{split_idx}/{cv.get_n_splits(X_train, y_train)}]")
 
             X_val_train, X_val_test = X_train[train_index], X_train[test_index]
             y_val_train, y_val_test = y_train[train_index], y_train[test_index]
@@ -355,3 +355,12 @@ class HundredHammersBase:
         best_params = best_params_df.head(1)['params'][0]
 
         return best_params
+
+    def _create_cross_validator(self, seed):
+        cv = self.cross_validator(**self.cross_validator_params)
+        if hasattr(cv, 'random_state'):
+            cv.random_state = seed
+        return cv
+
+    def _stratify_array(self, y):
+        return None
