@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Tuple, List, Iterable
 import warnings
-import random
 from copy import deepcopy, copy
 import pandas as pd
 import numpy as np
@@ -44,8 +43,9 @@ class HundredHammersBase:
     :param metrics: Metrics to use to evaluate the models.
     :param eval_metric: Target metric to use in hyperparameter optimization.
     :param input_transform: Input normalization strategy used. Specified as a string or the normalization class. ('MinMax', 'MaxAbs', 'Standard', 'Norm', 'Robust')
+    :param cross_validator: Cross Validator to use in the evaluation.
+    :param cross_validator_params: Parameters for the Cross Validator.
     :param test_size: Percentage of the dataset to use for testing.
-    :param n_folds: Number of Cross Validation folds.
     :param n_folds_tune: Number of Cross Validation folds in grid search.
     :param n_evals: Number of times to repeat the training of the models.
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
@@ -57,6 +57,8 @@ class HundredHammersBase:
         metrics: Iterable[str | callable] = None, 
         eval_metric: str | callable = None,
         input_transform: TransformerMixin | str = None,
+        cross_validator: callable = None,
+        cross_validator_params: dict = None,
         test_size: float = 0.2,
         n_folds: int = 5,
         n_folds_tune: int = 5,
@@ -72,8 +74,9 @@ class HundredHammersBase:
         else:
             self.eval_metric = _process_metric(eval_metric)
 
+        self.cross_validator = cross_validator
+        self.cross_validator_params = cross_validator_params
         self.test_size = test_size
-        self.n_folds = n_folds
         self.n_folds_tune = n_folds_tune
         self.n_evals = n_evals
         self.show_progress_bar = show_progress_bar
@@ -171,7 +174,7 @@ class HundredHammersBase:
 
         # Do train/test split
         # TODO: set seed for the train/test split function with some strategy
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=0)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=0, stratify=self._stratify_array(y))
 
         # Normalize inputs
         if self._input_transform:
@@ -259,7 +262,7 @@ class HundredHammersBase:
 
         for i, (name, model, _) in enumerate(tqdm(models, desc="Evaluating models...",
                                                   disable=not self.show_progress_bar)):
-            hh_logger.info(f"Running model [{i+1}/{len(models)}]: {name}")
+            hh_logger.info(f"Running model [{i + 1}/{len(models)}]: {name}")
 
             res, new_model = self._evaluate_model_cv_multiple_seeds(X_train, y_train, X_test, y_test, model, n_evals=self.n_evals)
             trained_models.append(new_model)
@@ -301,7 +304,7 @@ class HundredHammersBase:
         # take `n_evals` different seeds
         for i, seed in enumerate(tqdm(seeds, desc=f"        {model.__class__.__name__}",
                                       leave=False, disable=not self.show_progress_bar)):
-            hh_logger.debug(f"Iteration [{i+1}/{n_evals-1}]")
+            hh_logger.debug(f"Iteration [{i + 1}/{n_evals - 1}]")
             result_val_train, result_val_test, result_train, result_test, trained_model = self._evaluate_model_cv(
                 X_train, y_train, X_test, y_test, model, seed=seed
             )
@@ -342,13 +345,13 @@ class HundredHammersBase:
         if hasattr(model, 'random_state'):
             model.random_state = seed
 
-        kf = KFold(n_splits=self.n_folds, shuffle=True, random_state=seed)
+        cv = self._create_cross_validator(seed)
 
         results_val_train, results_val_test = [], []
 
-        for split_idx, (train_index, test_index) in enumerate(kf.split(X_train, y_train)):
+        for split_idx, (train_index, test_index) in enumerate(cv.split(X_train, y_train)):
             val_model = copy(model)
-            hh_logger.debug(f"Split [{split_idx}/{self.n_folds}]")
+            hh_logger.debug(f"Split [{split_idx}/{cv.get_n_splits(X_train, y_train)}]")
 
             X_val_train, X_val_test = X_train[train_index], X_train[test_index]
             y_val_train, y_val_test = y_train[train_index], y_train[test_index]
@@ -406,3 +409,12 @@ class HundredHammersBase:
         best_params = best_params_df.head(1)['params'][0]
 
         return best_params
+
+    def _create_cross_validator(self, seed):
+        cv = self.cross_validator(**self.cross_validator_params)
+        if hasattr(cv, 'random_state'):
+            cv.random_state = seed
+        return cv
+
+    def _stratify_array(self, y):
+        return None

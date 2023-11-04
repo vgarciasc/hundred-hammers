@@ -4,6 +4,7 @@ import pytest
 import logging
 from sklearn.datasets import load_iris
 import matplotlib.pyplot as plt
+from sklearn.model_selection import KFold, StratifiedKFold, LeaveOneOut
 
 from hundred_hammers import hh_logger
 from hundred_hammers import HundredHammersClassifier
@@ -51,5 +52,26 @@ def test_seed_strategy():
 
     df_results_3 = HundredHammersClassifier(seed_strategy='random').evaluate(X, y, optim_hyper=False)
     df_results_4 = HundredHammersClassifier(seed_strategy='random').evaluate(X, y, optim_hyper=False)
+
+    assert not df_results_3.equals(df_results_4)
+
+def test_cross_validations():
+    data = load_iris()
+    X = data.data
+    y = data.target
+
+    hh = HundredHammersClassifier(cross_validator=KFold, cross_validator_params={'n_splits': 5})
+    df_results_1 = hh.evaluate(X, y, optim_hyper=False)
+
+    hh = HundredHammersClassifier(cross_validator=KFold, cross_validator_params={'n_splits': 5})
+    df_results_2 = hh.evaluate(X, y, optim_hyper=False)
+
+    assert df_results_1.equals(df_results_2)
+
+    hh = HundredHammersClassifier(cross_validator=StratifiedKFold, cross_validator_params={'n_splits': 5})
+    df_results_3 = hh.evaluate(X, y, optim_hyper=False)
+
+    hh = HundredHammersClassifier(cross_validator=LeaveOneOut, cross_validator_params={})
+    df_results_4 = hh.evaluate(X, y, optim_hyper=False)
 
     assert not df_results_3.equals(df_results_4)

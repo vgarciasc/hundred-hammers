@@ -1,4 +1,7 @@
 from copy import copy, deepcopy
+
+from sklearn.model_selection import KFold
+
 from hundred_hammers.base import HundredHammersBase
 from hundred_hammers.model_zoo import DEFAULT_REGRESSION_MODELS, DEFAULT_REGRESSION_METRICS
 
@@ -13,8 +16,9 @@ class HundredHammersRegressor(HundredHammersBase):
     :param metrics: Metrics to use to evaluate the models (has a default list of metrics)
     :param eval_metric: Target metric to use in hyperparameter optimization (default is the first metric in metrics)
     :param input_transform: Input normalization strategy used. Specified as a string or the normalization class. ('MinMax', 'MaxAbs', 'Standard', 'Norm', 'Robust')
+    :param cross_validator: Cross Validator to use in the evaluation (default KFold)
+    :param cross_validator_params: Parameters for the Cross Validator (default {"shuffle": True, "n_splits": 5})
     :param test_size: Percentage of the dataset to use for testing (default 0.2)
-    :param n_folds: Number of Cross Validation folds (default 5)
     :param n_folds_tune: Number of Cross Validation folds in grid search (default 5)
     :param n_evals: Number of times to repeat the training of the models (default 10)
     :param show_progress_bar: Show progress bar in the evaluation (default False)
@@ -27,6 +31,8 @@ class HundredHammersRegressor(HundredHammersBase):
         metrics=None,
         eval_metric=None,
         input_transform=None,
+        cross_validator=KFold,
+        cross_validator_params={"shuffle": True, "n_splits": 5},
         test_size=0.2,
         n_folds=5,
         n_folds_tune=5,
@@ -45,6 +51,8 @@ class HundredHammersRegressor(HundredHammersBase):
             metrics,
             eval_metric,
             input_transform,
+            cross_validator,
+            cross_validator_params,
             test_size,
             n_folds,
             n_folds_tune,
