@@ -166,7 +166,7 @@ class HundredHammersBase:
         """
 
         # Do train/test split
-        # TODO: set seed for the train/test split function
+        # TODO: set seed for the train/test split function with some strategy
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=0)
 
         # Normalize inputs
