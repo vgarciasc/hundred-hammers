@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split, KFold
 from sklearn.metrics import get_scorer
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, StandardScaler, Normalizer, RobustScaler
+from sklearn.pipeline import Pipeline
 from .config import hh_logger
 from .metric_alias import metric_alias
 from .hyperparameters import find_hyperparam_grid
@@ -85,6 +86,8 @@ class HundredHammersBase:
         if input_transform:
             if isinstance(input_transform, TransformerMixin):
                 input_transform = input_transform
+            elif isinstance(input_transform, type):
+                input_transform = input_transform.__call__()
             elif isinstance(input_transform, str):
                 if input_transform == "MinMax":
                     input_transform = MinMaxScaler()
@@ -196,7 +199,7 @@ class HundredHammersBase:
 
         # Add normalization to models with pipelines
         if self._input_transform:
-            trained_models = [Pipeline([('scaler', self._input_transform), ('model', model),]) for model in trained_model]
+            trained_models = [Pipeline([('scaler', self._input_transform), ('model', model),]) for model in trained_models]
 
         # Store data in the object's attributes
         self._report = report
