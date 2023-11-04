@@ -12,6 +12,7 @@ class HundredHammersRegressor(HundredHammersBase):
     :param models: List of models to evaluate (has a default list of models)
     :param metrics: Metrics to use to evaluate the models (has a default list of metrics)
     :param eval_metric: Target metric to use in hyperparameter optimization (default is the first metric in metrics)
+    :param input_transform: Input normalization strategy used. Specified as a string or the normalization class. ('MinMax', 'MaxAbs', 'Standard', 'Norm', 'Robust')
     :param test_size: Percentage of the dataset to use for testing (default 0.2)
     :param n_folds: Number of Cross Validation folds (default 5)
     :param n_folds_tune: Number of Cross Validation folds in grid search (default 5)

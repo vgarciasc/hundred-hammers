@@ -43,6 +43,7 @@ class HundredHammersBase:
     :param models: List of models to evaluate.
     :param metrics: Metrics to use to evaluate the models.
     :param eval_metric: Target metric to use in hyperparameter optimization.
+    :param input_transform: Input normalization strategy used. Specified as a string or the normalization class. ('MinMax', 'MaxAbs', 'Standard', 'Norm', 'Robust')
     :param test_size: Percentage of the dataset to use for testing.
     :param n_folds: Number of Cross Validation folds.
     :param n_folds_tune: Number of Cross Validation folds in grid search.
@@ -92,6 +93,9 @@ class HundredHammersBase:
                     input_transform = Normalizer()
                 elif input_transform == "Robust":
                     input_transform = RobustScaler()
+                else:
+                    raise Exception("Normalization method not implemented,"
+                                    "choose one of ['MinMax','MaxAbs','Standard','Norm','Robust'] or use the sklearn normalization class.")
         self._input_transform = input_transform
 
         self._report = pd.DataFrame()
@@ -243,8 +247,10 @@ class HundredHammersBase:
         """
         Evaluate all models on a given dataset with their default hyperparameters.
         
-        :param X: Input observations.
-        :param y: Target values.
+        :param X_train: Input observations in the training set.
+        :param y_train: Target values in the training set.
+        :param X_test: Input observations in the test set.
+        :param y_test: Target values in the test set.
         :return: A DataFrame with the results.
         """
 
@@ -273,8 +279,10 @@ class HundredHammersBase:
         """
         Evaluate a model multiple times, with a different seed every time.
 
-        :param X: Input observations.
-        :param y: Target values.
+        :param X_train: Input observations in the training set.
+        :param y_train: Target values in the training set.
+        :param X_test: Input observations in the test set.
+        :param y_test: Target values in the test set.
         :param model: Model to evaluate.
         :param n_evals: Number of times to train the model (each iteration uses a different seed).
         :return: A tuple with the results for validation train, validation test, train and test.
@@ -322,8 +330,10 @@ class HundredHammersBase:
         """
         Evaluate a model on a given dataset.
 
-        :param X: Input observations.
-        :param y: Target values.
+        :param X_train: Input observations in the training set.
+        :param y_train: Target values in the training set.
+        :param X_test: Input observations in the test set.
+        :param y_test: Target values in the test set.
         :param model: Model to evaluate.
         :param seed: Random seed.
         :return: A tuple with the results for validation train, validation test, train and test.
