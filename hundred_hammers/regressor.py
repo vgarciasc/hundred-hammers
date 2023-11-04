@@ -35,6 +35,3 @@ class HundredHammersRegressor(HundredHammersBase):
 
         super().__init__(models, metrics, eval_metric, cross_validator, cross_validator_params, test_size,
                          n_folds_tune, n_evals, show_progress_bar, seed_strategy)
-
-    def _stratify_array(self, y):
-        return None
