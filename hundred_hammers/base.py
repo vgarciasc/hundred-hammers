@@ -5,10 +5,11 @@ import random
 from copy import deepcopy, copy
 import pandas as pd
 import numpy as np
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import train_test_split, KFold
 from sklearn.metrics import get_scorer
 from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, StandardScaler, Normalizer, RobustScaler
 from .config import hh_logger
 from .metric_alias import metric_alias
 from .hyperparameters import find_hyperparam_grid
@@ -49,10 +50,19 @@ class HundredHammersBase:
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
     """
 
-    def __init__(self, models: Iterable[Tuple[str, BaseEstimator, dict]] = None,
-                 metrics: Iterable[str | callable] = None, eval_metric: str | callable = None,
-                 test_size: float = 0.2, n_folds: int = 5, n_folds_tune: int = 5, n_evals: int = 10,
-                 show_progress_bar: bool = True, seed_strategy: str = 'sequential'):
+    def __init__(
+        self,
+        models: Iterable[Tuple[str, BaseEstimator, dict]] = None,
+        metrics: Iterable[str | callable] = None, 
+        eval_metric: str | callable = None,
+        input_transform: TransformerMixin | str = None,
+        test_size: float = 0.2,
+        n_folds: int = 5,
+        n_folds_tune: int = 5,
+        n_evals: int = 10,
+        show_progress_bar: bool = True,
+        seed_strategy: str = 'sequential'
+    ):
         self.models = models
         self.metrics = [_process_metric(metric) for metric in metrics]
 
@@ -67,6 +77,23 @@ class HundredHammersBase:
         self.n_evals = n_evals
         self.show_progress_bar = show_progress_bar
         self.seed_strategy = seed_strategy
+
+        if input_transform:
+            if isinstance(input_transform, TransformerMixin):
+                input_transform = input_transform
+            elif isinstance(input_transform, str):
+                if input_transform == "MinMax":
+                    input_transform = MinMaxScaler()
+                elif input_transform == "MaxAbs":
+                    input_transform = MaxAbsScaler()
+                elif input_transform == "Standard":
+                    input_transform = StandardScaler()
+                elif input_transform == "Norm":
+                    input_transform = Normalizer()
+                elif input_transform == "Robust":
+                    input_transform = RobustScaler()
+        self._input_transform = input_transform
+
         self._report = pd.DataFrame()
         self._best_params = []
         self._trained_models = self.models
@@ -138,13 +165,33 @@ class HundredHammersBase:
         :return: Dataframe with the performance of each of the models.
         """
 
+        # Do train/test split
+        # TODO: set seed for the train/test split function
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=0)
+
+        # Normalize inputs
+        if self._input_transform:
+            self._input_transform = self._input_transform.fit(X_train)
+            X_norm_train = self._input_transform.transform(X_train)
+            X_norm_test = self._input_transform.transform(X_test)
+        else:       
+            X_norm_train = X_train
+            X_norm_test = X_test
+
+        # Do (or don't do) hyperparameter optimization
         if optim_hyper:
-            new_models = self.tune_models(X, y, n_grid_points)
+            new_models = self.tune_models(X_norm_train, y_train, n_grid_points)
         else:
             new_models = deepcopy(self.models)
 
-        report, trained_models = self._evaluate_models(X, y, new_models)
+        # Evaluate models
+        report, trained_models = self._evaluate_models(X_norm_train, y_train, X_norm_test, y_test, new_models)
 
+        # Add normalization to models with pipelines
+        if self._input_transform:
+            trained_models = [Pipeline([('scaler', self._input_transform), ('model', model),]) for model in trained_model]
+
+        # Store data in the object's attributes
         self._report = report
         self._trained_models = [(m_name, tmodel, param_grid) for (m_name, _, param_grid), tmodel in zip(self.models, trained_models)]
 
@@ -191,7 +238,7 @@ class HundredHammersBase:
 
         return new_models
 
-    def _evaluate_models(self, X: np.ndarray, y: np.ndarray,
+    def _evaluate_models(self, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray,
                          models: Iterable[Tuple[str, BaseEstimator, dict]]) -> Tuple[pd.DataFrame, list[BaseEstimator]]:
         """
         Evaluate all models on a given dataset with their default hyperparameters.
@@ -208,7 +255,7 @@ class HundredHammersBase:
                                                   disable=not self.show_progress_bar)):
             hh_logger.info(f"Running model [{i+1}/{len(models)}]: {name}")
 
-            res, new_model = self._evaluate_model_cv_multiple_seeds(X, y, model, n_evals=self.n_evals)
+            res, new_model = self._evaluate_model_cv_multiple_seeds(X_train, y_train, X_test, y_test, model, n_evals=self.n_evals)
             trained_models.append(new_model)
 
             val = {"Model": name}
@@ -221,7 +268,7 @@ class HundredHammersBase:
 
         return pd.DataFrame(data), trained_models
 
-    def _evaluate_model_cv_multiple_seeds(self, X: np.ndarray, y: np.ndarray,
+    def _evaluate_model_cv_multiple_seeds(self, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray,
                                           model: BaseEstimator, n_evals: int = 10) -> Tuple[list[list[float]], BaseEstimator]:
         """
         Evaluate a model multiple times, with a different seed every time.
@@ -247,15 +294,14 @@ class HundredHammersBase:
         for i, seed in enumerate(tqdm(seeds, desc=f"        {model.__class__.__name__}",
                                       leave=False, disable=not self.show_progress_bar)):
             hh_logger.debug(f"Iteration [{i+1}/{n_evals-1}]")
-            res = self._evaluate_model_cv(X, y, model, seed=seed)
+            result_val_train, result_val_test, result_train, result_test, trained_model = self._evaluate_model_cv(
+                X_train, y_train, X_test, y_test, model, seed=seed
+            )
 
-            results_val_train += res[0]
-            results_val_test += res[1]
-            results_train.append(res[2])
-            results_test.append(res[3])
-
-        # Take the model trained with the last seed
-        trained_model = res[4]
+            results_val_train += result_val_train
+            results_val_test += result_val_test
+            results_train.append(result_train)
+            results_test.append(result_test)
 
         results = [results_val_train, results_val_test, results_train, results_test]
 
@@ -271,7 +317,7 @@ class HundredHammersBase:
 
         return results, trained_model
 
-    def _evaluate_model_cv(self, X: np.ndarray, y: np.ndarray, model: BaseEstimator,
+    def _evaluate_model_cv(self, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray, model: BaseEstimator,
                            seed: int = 0) -> tuple[list[list[float]], list[list[float]], list[float], list[float], BaseEstimator]:
         """
         Evaluate a model on a given dataset.
@@ -287,7 +333,6 @@ class HundredHammersBase:
             model.random_state = seed
 
         kf = KFold(n_splits=self.n_folds, shuffle=True, random_state=seed)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=seed)
 
         results_val_train, results_val_test = [], []
 
