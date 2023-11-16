@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import train_test_split, KFold
-from sklearn.metrics import get_scorer
+from sklearn.metrics import get_scorer, make_scorer
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, StandardScaler, Normalizer, RobustScaler
 from sklearn.pipeline import Pipeline
@@ -184,7 +184,7 @@ class HundredHammersBase:
             self._input_transform = self._input_transform.fit(X_train)
             X_norm_train = self._input_transform.transform(X_train)
             X_norm_test = self._input_transform.transform(X_test)
-        else:       
+        else:
             X_norm_train = X_train
             X_norm_test = X_test
 
@@ -402,14 +402,13 @@ class HundredHammersBase:
                                                                  **self.eval_metric[2])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            grid_search_model = GridSearchCV(model, param_grid, scoring=eval_metric,
-                                             n_jobs=-1, cv=self.n_folds_tune)
+            grid_search_model = GridSearchCV(model, param_grid, scoring=make_scorer(eval_metric), n_jobs=-1, cv=self.n_folds_tune)
             grid_search_model.fit(X, y)
 
         results = pd.DataFrame(grid_search_model.cv_results_)
-        results.dropna()
+        results.dropna(inplace=True)
         best_params_df = results[results["rank_test_score"] == results["rank_test_score"].min()]
-        best_params = best_params_df.head(1)['params'][0]
+        best_params = best_params_df.head(1)['params'].values[0]
 
         return best_params
 
