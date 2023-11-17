@@ -32,14 +32,14 @@ class HundredHammersClassifier(HundredHammersBase):
         metrics=None,
         eval_metric=None,
         input_transform=None,
-        cross_validator=StratifiedKFold, 
+        cross_validator=StratifiedKFold,
         cross_validator_params={"shuffle": True, "n_splits": 5},
         test_size=0.2,
         n_folds_tune=5,
         n_evals=10,
         show_progress_bar=False,
-        seed_cv_strategy='sequential',
-        seed_train_test=0
+        seed_cv_strategy="sequential",
+        seed_train_test=0,
     ):
         if models is None:
             models = deepcopy(DEFAULT_CLASSIFICATION_MODELS)
@@ -59,8 +59,8 @@ class HundredHammersClassifier(HundredHammersBase):
             n_evals,
             show_progress_bar,
             seed_cv_strategy,
-            seed_train_test
+            seed_train_test,
         )
-    
+
     def _stratify_array(self, y):
         return y
