@@ -49,7 +49,8 @@ class HundredHammersBase:
     :param test_size: Percentage of the dataset to use for testing.
     :param n_folds_tune: Number of Cross Validation folds in grid search.
     :param n_evals: Number of times to repeat the training of the models.
-    :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
+    :param seed_cv_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
+    :param seed_train_test: Seed used to split the dataset into train and test.
     """
 
     def __init__(
@@ -61,11 +62,11 @@ class HundredHammersBase:
         cross_validator: callable = None,
         cross_validator_params: dict = None,
         test_size: float = 0.2,
-        n_folds: int = 5,
         n_folds_tune: int = 5,
         n_evals: int = 10,
         show_progress_bar: bool = True,
-        seed_strategy: str = 'sequential'
+        seed_cv_strategy: str = 'sequential',
+        seed_train_test: int = 0
     ):
         self.models = models
         self.metrics = [_process_metric(metric) for metric in metrics]
@@ -81,7 +82,8 @@ class HundredHammersBase:
         self.n_folds_tune = n_folds_tune
         self.n_evals = n_evals
         self.show_progress_bar = show_progress_bar
-        self.seed_strategy = seed_strategy
+        self.seed_strategy = seed_cv_strategy
+        self.seed_train_test = seed_train_test
 
         if input_transform:
             if isinstance(input_transform, TransformerMixin):
@@ -176,8 +178,7 @@ class HundredHammersBase:
         """
 
         # Do train/test split
-        # TODO: set seed for the train/test split function with some strategy
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=0, stratify=self._stratify_array(y))
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=self.seed_train_test, stratify=self._stratify_array(y))
 
         # Normalize inputs
         if self._input_transform:
