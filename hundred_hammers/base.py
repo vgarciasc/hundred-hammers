@@ -399,15 +399,16 @@ class HundredHammersBase:
                            " Generating hyperparameter grid.")
             param_grid = find_hyperparam_grid(model, n_grid_points)
 
-        eval_metric = lambda y_true, y_pred: self.eval_metric[1](y_true, y_pred,
-                                                                 **self.eval_metric[2])
+        eval_metric = make_scorer(
+            lambda y_true, y_pred: self.eval_metric[1](y_true, y_pred, **self.eval_metric[2])
+        )
+
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            grid_search_model = GridSearchCV(model, param_grid, scoring=make_scorer(eval_metric), n_jobs=-1, cv=self.n_folds_tune)
+            grid_search_model = GridSearchCV(model, param_grid, scoring=eval_metric, n_jobs=-1, cv=self.n_folds_tune)
             grid_search_model.fit(X, y)
 
-        results = pd.DataFrame(grid_search_model.cv_results_)
-        results.dropna(inplace=True)
+        results = pd.DataFrame(grid_search_model.cv_results_).dropna()
         best_params_df = results[results["rank_test_score"] == results["rank_test_score"].min()]
         best_params = best_params_df.head(1)['params'].values[0]
 
