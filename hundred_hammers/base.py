@@ -121,7 +121,7 @@ class HundredHammersBase:
         """
 
         if self._report.empty:
-            hh_logger.warning("No reports available. " "Use the `evaluate` method to generate a report.")
+            hh_logger.warning("No reports available. Use the `evaluate` method to generate a report.")
 
         return self._report
 
@@ -134,7 +134,7 @@ class HundredHammersBase:
         """
 
         if not self._best_params:
-            hh_logger.warning("No available hyperparameters. " "Hyperparameter optimization not performed.")
+            hh_logger.warning("No available hyperparameters. Hyperparameter optimization not performed.")
 
         model_names = [m_tup[0] for m_tup in self.models]
 
@@ -149,7 +149,7 @@ class HundredHammersBase:
         """
 
         if self._report.empty:
-            hh_logger.warning("The models were not trained, returning untrained models. " "Use the `evaluate` method to train them.")
+            hh_logger.warning("The models were not trained, returning untrained models. Use the `evaluate` method to train them.")
 
         return self._trained_models
 
@@ -402,7 +402,7 @@ class HundredHammersBase:
         """
 
         if not param_grid:
-            hh_logger.info(f"No specified hyperparameter grid for {type(model).__name__}." " Generating hyperparameter grid.")
+            hh_logger.info(f"No specified hyperparameter grid for {type(model).__name__}. Generating hyperparameter grid.")
             param_grid = find_hyperparam_grid(model, n_grid_points)
 
         eval_metric = make_scorer(lambda y_true, y_pred: self.eval_metric[1](y_true, y_pred, **self.eval_metric[2]))
