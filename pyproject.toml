@@ -43,9 +43,6 @@ dependencies = [
     "tqdm==4.62.3",
 ]
 
-[tool.setuptools.packages.find]
-include=["hunded-hammers"]
-
 [project.urls]
 "Homepage" = "https://github.com/vgarciasc/hundred-hammers"
 "Bug Tracker" = "https://github.com/vgarciasc/hundred-hammers/issues"
