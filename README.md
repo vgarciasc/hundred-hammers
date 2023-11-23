@@ -21,7 +21,7 @@ The recommended way to install the library is through `pip install hundred_hamme
 
 ## Documentation
 
-The documentation can be found in [ReadTheDocs](https://hundred-hammers.readthedocs.io/en/latest/).
+The documentation can be found in [ReadTheDocs](https://hundred-hammers.readthedocs.io/en/latest/). Code is formatted using Black with line length 150.
 
 ## Examples
 
@@ -99,3 +99,4 @@ plot_multiple_datasets(df_results, metric_name="Avg ACC (Validation Test)", id_c
 ```
 
 ![](multimedia/dataset_batch.png)
+
