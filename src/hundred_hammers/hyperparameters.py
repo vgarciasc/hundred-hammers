@@ -8,13 +8,14 @@ from sklearn.base import BaseEstimator
 from .config import hh_logger
 from .hyperparam_info import known_hyperparams, known_models, hyperparam_def_schema
 
+
 def add_known_model_def(def_dict: dict):
     """
     Adds the definition of the hyperparameters of a new model to the
     list of know hyperparameters and known models.
 
     The definition should be a dictionary that follows this schema: ::
-    
+
         {
             'model': <Name>,
             <hyperparam_name>:
@@ -45,7 +46,7 @@ def add_known_model_def(def_dict: dict):
 def find_hyperparam_grid(model: BaseEstimator, n_grid_points: int = 10) -> dict:
     """
     Obtains a grid of hyperparameters to optimize for the model.
-    
+
     :param model: List of model for which we want to find the hyperparameters.
     :param n_grid_points: Number of values to pick for each hyperparameter.
     :return: List with the hyperparameter definition for each of the model passed
@@ -59,6 +60,7 @@ def find_hyperparam_grid(model: BaseEstimator, n_grid_points: int = 10) -> dict:
         hyperparam_grid = {}
 
     return hyperparam_grid
+
 
 def find_hyperparam_def(model: BaseEstimator) -> dict:
     """
@@ -80,6 +82,7 @@ def find_hyperparam_def(model: BaseEstimator) -> dict:
 
     return params
 
+
 def construct_hyperparam_grid(hyperparam_grid_def: dict, n_grid_points: int = 10) -> dict:
     """
     Generate a grid of hyperparameters from their definition.
@@ -89,7 +92,7 @@ def construct_hyperparam_grid(hyperparam_grid_def: dict, n_grid_points: int = 10
     :return: List of hyperparameter grids to use in grid search.
     """
 
-    keys = [k for k in hyperparam_grid_def.keys() if k != 'model']
+    keys = [k for k in hyperparam_grid_def.keys() if k != "model"]
 
     model_params = {}
     hh_logger.debug(f"Using hyperparameter definitions: {hyperparam_grid_def}")
@@ -110,6 +113,6 @@ def construct_hyperparam_grid(hyperparam_grid_def: dict, n_grid_points: int = 10
             model_params[k] = random.sample(values, k=min(len(values), n_grid_points))
 
             # Interpret 'None' as a python null value
-            model_params[k] = [i if i != 'None' else None for i in model_params[k]]
+            model_params[k] = [i if i != "None" else None for i in model_params[k]]
 
     return model_params
