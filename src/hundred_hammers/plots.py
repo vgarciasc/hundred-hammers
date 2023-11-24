@@ -40,7 +40,7 @@ def plot_confusion_matrix(X, y, model, class_dict, title="", test_size=0.2, seed
 
     # Plotting
     sns.set_style("ticks")
-    fig, axs = plt.subplots(2, 2, figsize=(10, 10))
+    fig, axs = plt.subplots(2, 2, figsize=(8, 8))
     fig.patch.set_facecolor("lightgrey")
 
     for i, md in enumerate([model, DummyClassifier()]):
@@ -160,8 +160,8 @@ def plot_batch_results(df, metric_name, title="", filepath=None, display=True):
     plt.figure(figsize=(6, 6))
     ax = plt.gca()
 
-    y_label = f"Avg {metric_name} (Validation Test)"
-    x_label = f"Avg {metric_name} (Validation Train)"
+    y_label = f"{metric_name} / Validation Test / Mean"
+    x_label = f"{metric_name} / Validation Train / Mean"
     baseline_result = df[df["Model"].str.startswith("Dummy")][y_label].values[0]
 
     sns.scatterplot(data=df, x=x_label, y=y_label, s=100, hue="Model", legend=False)

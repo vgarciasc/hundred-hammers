@@ -235,8 +235,9 @@ class HundredHammersBase:
 
         res_cols = [f"{m} / {v}" for (m, _, _) in self.metrics for v in ["Validation Train", "Validation Test", "Train", "Test"]]
         report = full_report.groupby(["Model"]).agg({col: ["mean", "std"] for col in res_cols}).reset_index()
-        report.columns = report.columns.to_flat_index().str.join(' / ')
+        report.columns = report.columns.to_flat_index().str.join(" / ")
         report.columns = report.columns.str.replace("mean", "Mean").str.replace("std", "Std")
+        report.columns = report.columns.str.replace("Model / ", "Model")
 
         # Store data in the object's attributes
         self._report = report
