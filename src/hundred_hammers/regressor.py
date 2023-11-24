@@ -20,10 +20,10 @@ class HundredHammersRegressor(HundredHammersBase):
     :param cross_validator_params: Parameters for the Cross Validator (default {"shuffle": True, "n_splits": 5})
     :param test_size: Percentage of the dataset to use for testing (default 0.2)
     :param n_folds_tune: Number of Cross Validation folds in grid search (default 5)
-    :param n_cv_evals: Number of times to repeat the training of the models (default 10)
+    :param n_train_evals: Number of times to vary the training/test separation seed.
+    :param n_cv_evals: Number of times to vary the cross-validation seed.
     :param show_progress_bar: Show progress bar in the evaluation (default False)
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
-    :param seed_train_test: Seed used to split the dataset into train and test (default 0)
     """
 
     def __init__(

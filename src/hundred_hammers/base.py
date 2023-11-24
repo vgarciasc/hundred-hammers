@@ -48,10 +48,9 @@ class HundredHammersBase:
     :param cross_validator_params: Parameters for the Cross Validator.
     :param test_size: Percentage of the dataset to use for testing.
     :param n_folds_tune: Number of Cross Validation folds in grid search.
-    :param n_train_evals: Number of times to repeat the training of the models.
-    :param n_cv_evals: Number of times to repeat the Cross Validation.
+    :param n_train_evals: Number of times to vary the training/test separation seed.
+    :param n_cv_evals: Number of times to vary the cross-validation seed.
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
-    :param seed_train_test: Seed used to split the dataset into train and test.
     """
 
     def __init__(
