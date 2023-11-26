@@ -47,9 +47,9 @@ class HundredHammersBase:
     :param cross_validator: Cross Validator to use in the evaluation.
     :param cross_validator_params: Parameters for the Cross Validator.
     :param test_size: Percentage of the dataset to use for testing.
-    :param n_folds_tune: Number of Cross Validation folds in grid search.
     :param n_train_evals: Number of times to vary the training/test separation seed.
     :param n_val_evals: Number of times to vary the cross-validation seed.
+    :param n_folds_tune: Number of Cross Validation folds to use in hyperparameter optimization grid search.
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
     """
 
@@ -62,9 +62,9 @@ class HundredHammersBase:
         cross_validator: callable = None,
         cross_validator_params: dict = None,
         test_size: float = 0.2,
-        n_folds_tune: int = 5,
         n_train_evals: int = 1,
-        n_val_evals: int = 10,
+        n_val_evals: int = 1,
+        n_folds_tune: int = 5,
         show_progress_bar: bool = True,
         seed_strategy: str = "sequential",
     ):
