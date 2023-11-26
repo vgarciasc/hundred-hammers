@@ -49,7 +49,7 @@ class HundredHammersBase:
     :param test_size: Percentage of the dataset to use for testing.
     :param n_folds_tune: Number of Cross Validation folds in grid search.
     :param n_train_evals: Number of times to vary the training/test separation seed.
-    :param n_cv_evals: Number of times to vary the cross-validation seed.
+    :param n_val_evals: Number of times to vary the cross-validation seed.
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
     """
 
@@ -64,7 +64,7 @@ class HundredHammersBase:
         test_size: float = 0.2,
         n_folds_tune: int = 5,
         n_train_evals: int = 1,
-        n_cv_evals: int = 10,
+        n_val_evals: int = 10,
         show_progress_bar: bool = True,
         seed_strategy: str = "sequential",
     ):
@@ -81,7 +81,7 @@ class HundredHammersBase:
         self.test_size = test_size
         self.n_folds_tune = n_folds_tune
         self.n_train_evals = n_train_evals
-        self.n_cv_evals = n_cv_evals
+        self.n_val_evals = n_val_evals
         self.show_progress_bar = show_progress_bar
         self.seed_strategy = seed_strategy
 
@@ -301,7 +301,7 @@ class HundredHammersBase:
         results = []
         for i, (name, model, _) in enumerate(tqdm(models, desc="Evaluating models...", disable=not self.show_progress_bar)):
             hh_logger.info(f"Running model [{i + 1}/{len(models)}]: {name}")
-            res_val_train, res_val_test = self._evaluate_model_cv_multiple_seeds(X_train, y_train, model, n_evals=self.n_cv_evals)
+            res_val_train, res_val_test = self._evaluate_model_cv_multiple_seeds(X_train, y_train, model, n_evals=self.n_val_evals)
 
             trained_model = copy(model)
             with warnings.catch_warnings():

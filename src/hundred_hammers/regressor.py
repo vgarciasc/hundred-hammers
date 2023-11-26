@@ -21,7 +21,7 @@ class HundredHammersRegressor(HundredHammersBase):
     :param test_size: Percentage of the dataset to use for testing (default 0.2)
     :param n_folds_tune: Number of Cross Validation folds in grid search (default 5)
     :param n_train_evals: Number of times to vary the training/test separation seed.
-    :param n_cv_evals: Number of times to vary the cross-validation seed.
+    :param n_val_evals: Number of times to vary the cross-validation seed.
     :param show_progress_bar: Show progress bar in the evaluation (default False)
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
     """
@@ -36,7 +36,7 @@ class HundredHammersRegressor(HundredHammersBase):
         cross_validator_params={"shuffle": True, "n_splits": 5},
         test_size=0.2,
         n_folds_tune=5,
-        n_cv_evals=10,
+        n_val_evals=10,
         n_train_evals=1,
         show_progress_bar=False,
         seed_strategy="sequential",
@@ -57,7 +57,7 @@ class HundredHammersRegressor(HundredHammersBase):
             test_size,
             n_folds_tune,
             n_train_evals,
-            n_cv_evals,
+            n_val_evals,
             show_progress_bar,
             seed_strategy,
         )
