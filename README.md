@@ -100,3 +100,31 @@ plot_multiple_datasets(df_results, metric_name="Avg ACC (Validation Test)", id_c
 
 ![](multimedia/dataset_batch.png)
 
+## How is the data used?
+
+By default, Hundred Hammers will split the data into train and test.
+If the user defines a normalization procedure (through the `input_transform` parameter), then 
+normalization will be fitted to the training data and applied to both partitions.
+Next, if the user enabled hyperparameter optimization, the training data is used 
+to fit the hyperparameters of each model, through a Grid Search with `n_folds_tune` folds.
+The model is then trained on the training data and evaluated on both partitions 
+to produce the **train** and **test** results.
+
+As is standard in ML, the training data is also used in a cross-validation fashion,
+according to the cross-validator passed by the user (through the `cross_validator` parameter).
+The user-defined metrics are then average over the cross-validation folds to produced 
+both **validation train** and **validation test** results.
+
+Two DataFrames are provided to the user: a *full report* (`hh._full_report`) with the results for each 
+model, seed, and cross-validation fold; and a *summary report* (`hh._report)`with the average results
+for each model. 
+
+Furthermore, with flexibility in mind, Hundred Hammers also allows the user to define 
+how many seeds will be tested and averaged for both training and validation splitting. 
+This is done through the `n_train_evals` and `n_val_evals` parameters, which are both `1`
+by default (i.e. a single train/test split is done, and inside the training data, a 
+single cross-validation scheme is run).
+
+Since the usage of data is key, we provide below an image to illustrate how the data is used:
+
+![](multimedia/data_flow.png)
