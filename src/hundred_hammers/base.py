@@ -7,30 +7,11 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import get_scorer
 from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, StandardScaler, Normalizer, RobustScaler
 from sklearn.pipeline import Pipeline
 from .config import hh_logger
-from .metric_alias import metric_alias
+from .metric_alias import process_metric
 from .hyperoptimizer import HyperOptimizer, HyperOptimizerGridSearch
-
-
-def _process_metric(metric: str | callable) -> Tuple[str, callable, dict]:
-    result = None
-
-    if isinstance(metric, str):
-        # Metric given by its name
-        metric_fn_name = metric
-        if metric in metric_alias:
-            metric_fn_name = metric_alias[metric]
-
-        scorer = get_scorer(metric_fn_name)
-        result = (metric, scorer._score_func, scorer._kwargs)
-    else:
-        # Metric given as a lambda function
-        result = (metric.__name__, metric, {})
-
-    return result
 
 
 class HundredHammersBase:
@@ -67,12 +48,12 @@ class HundredHammersBase:
         seed_strategy: str = "sequential",
     ):
         self.models = models
-        self.metrics = [_process_metric(metric) for metric in metrics]
+        self.metrics = [process_metric(metric) for metric in metrics]
 
         if eval_metric is None:
             self.eval_metric = self.metrics[0]
         else:
-            self.eval_metric = _process_metric(eval_metric)
+            self.eval_metric = process_metric(eval_metric)
 
         self.cross_validator = cross_validator
         self.cross_validator_params = cross_validator_params
@@ -188,7 +169,7 @@ class HundredHammersBase:
         """
 
         if optim_hyper and hyperoptimizer is None:
-            hyperoptimizer = HyperOptimizerGridSearch(self.eval_metric[1], self.eval_metric[2])
+            hyperoptimizer = HyperOptimizerGridSearch(self.eval_metric)
 
         report = []
         seeds = self._generate_seeds(self.n_train_evals, self.seed_strategy)

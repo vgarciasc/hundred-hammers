@@ -45,7 +45,7 @@ class HundredHammersRegressor(HundredHammersBase):
 
         if metrics is None:
             metrics = copy(DEFAULT_REGRESSION_METRICS)
-        
+
         if cross_validator_params is None:
             cross_validator_params = {"shuffle": True, "n_splits": 5}
 

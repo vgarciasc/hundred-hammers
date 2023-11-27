@@ -83,6 +83,7 @@ def find_hyperparam_grid(model: BaseEstimator, n_grid_points: int = 10) -> dict:
 
     return hyperparam_grid
 
+
 def construct_hyperparam_grid(hyperparam_grid_def: dict, n_grid_points: int = 10) -> dict:
     """
     Generate a grid of hyperparameters from their definition.
@@ -136,6 +137,7 @@ def find_hyperparam_random(model: BaseEstimator, n_samples: int = 10) -> dict:
 
     return hyperparam_grid
 
+
 def construct_hyperparam_random(hyperparam_grid_def: dict, n_samples: int = 10) -> dict:
     """
     Generate a grid of hyperparameters from their definition.
@@ -154,7 +156,7 @@ def construct_hyperparam_random(hyperparam_grid_def: dict, n_samples: int = 10) 
             model_params[k] = sp.stats.distributions.randint(hyperparam_grid_def[k]["min"], hyperparam_grid_def[k]["max"])
 
         elif hyperparam_grid_def[k]["type"] == "real":
-            model_params[k] = sp.stats.distributions.loguniform(max(hyperparam_grid_def[k]["min"], 1e-10), hyperparam_grid_def[k]["max"]) 
+            model_params[k] = sp.stats.distributions.loguniform(max(hyperparam_grid_def[k]["min"], 1e-10), hyperparam_grid_def[k]["max"])
 
         elif hyperparam_grid_def[k]["type"] == "categorical":
             # Interpret 'None' as a python null value
