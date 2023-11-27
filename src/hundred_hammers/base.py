@@ -114,6 +114,20 @@ class HundredHammersBase:
         self._trained_models = self.models
 
     @property
+    def full_report(self) -> pd.DataFrame:
+        """
+        Pandas dataframe reflecting the results of the last evaluation of the models with extra information.
+
+        :return: Dataframe with the performance of each of the models.
+        """
+
+        if self._full_report.empty:
+            hh_logger.warning("No reports available. Use the `evaluate` method to generate the full report.")
+
+        return self._full_report
+        
+
+    @property
     def report(self) -> pd.DataFrame:
         """
         Pandas dataframe reflecting the results of the last evaluation of the models.
@@ -199,11 +213,11 @@ class HundredHammersBase:
                 new_models = deepcopy(self.models)
 
             # Evaluate models
-            _res = self._evaluate_models(X_norm_train, y_train, X_norm_test, y_test, new_models)
-            model_names, trained_models, results = zip(*_res)
+            model_tuples = self._evaluate_models(X_norm_train, y_train, X_norm_test, y_test, new_models)
+            model_names, trained_models, results = zip(*model_tuples)
 
             # Add results to dataframe
-            for model_name, trained_model, res in zip(model_names, trained_models, results):
+            for model_name, trained_model, res in model_tuples:
                 results_val_train, results_val_test, result_train, result_test = res
                 for res_val_train, res_val_test in zip(results_val_train, results_val_test):
                     val_seed = res_val_train[0]

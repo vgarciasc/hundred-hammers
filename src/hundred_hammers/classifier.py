@@ -48,18 +48,18 @@ class HundredHammersClassifier(HundredHammersBase):
             metrics = copy(DEFAULT_CLASSIFICATION_METRICS)
 
         super().__init__(
-            models,
-            metrics,
-            eval_metric,
-            input_transform,
-            cross_validator,
-            cross_validator_params,
-            test_size,
-            n_folds_tune,
-            n_train_evals,
-            n_val_evals,
-            show_progress_bar,
-            seed_strategy,
+            models=models,
+            metrics=metrics,
+            eval_metric=eval_metric,
+            input_transform=input_transform,
+            cross_validator=cross_validator,
+            cross_validator_params=cross_validator_params,
+            test_size=test_size,
+            n_train_evals=n_train_evals,
+            n_val_evals=n_val_evals,
+            n_folds_tune=n_folds_tune,
+            show_progress_bar=show_progress_bar,
+            seed_strategy=seed_strategy,
         )
 
     def _stratify_array(self, y):

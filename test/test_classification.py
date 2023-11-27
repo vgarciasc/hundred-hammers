@@ -59,13 +59,13 @@ def test_seed_strategy():
         ('Dummy', DummyClassifier(), None),
     ]
 
-    df_results_1 = HundredHammersClassifier(models=models, seed_cv_strategy='sequential').evaluate(X, y, optim_hyper=False)
-    df_results_2 = HundredHammersClassifier(models=models, seed_cv_strategy='sequential').evaluate(X, y, optim_hyper=False)
+    df_results_1 = HundredHammersClassifier(models=models, seed_strategy='sequential').evaluate(X, y, optim_hyper=False)
+    df_results_2 = HundredHammersClassifier(models=models, seed_strategy='sequential').evaluate(X, y, optim_hyper=False)
 
     assert df_results_1.equals(df_results_2)
 
-    df_results_3 = HundredHammersClassifier(models=models, seed_cv_strategy='random').evaluate(X, y, optim_hyper=False)
-    df_results_4 = HundredHammersClassifier(models=models, seed_cv_strategy='random').evaluate(X, y, optim_hyper=False)
+    df_results_3 = HundredHammersClassifier(models=models, seed_strategy='random').evaluate(X, y, optim_hyper=False)
+    df_results_4 = HundredHammersClassifier(models=models, seed_strategy='random').evaluate(X, y, optim_hyper=False)
 
     assert not df_results_3.equals(df_results_4)
 
