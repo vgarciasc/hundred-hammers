@@ -33,11 +33,10 @@ class HundredHammersClassifier(HundredHammersBase):
         eval_metric=None,
         input_transform=None,
         cross_validator=StratifiedKFold,
-        cross_validator_params={"shuffle": True, "n_splits": 5},
+        cross_validator_params=None,
         test_size=0.2,
         n_train_evals=1,
         n_val_evals=1,
-        n_folds_tune=5,
         show_progress_bar=False,
         seed_strategy="sequential",
     ):
@@ -46,6 +45,9 @@ class HundredHammersClassifier(HundredHammersBase):
 
         if metrics is None:
             metrics = copy(DEFAULT_CLASSIFICATION_METRICS)
+
+        if cross_validator_params is None:
+            cross_validator_params = {"shuffle": True, "n_splits": 5}
 
         super().__init__(
             models=models,
@@ -57,7 +59,6 @@ class HundredHammersClassifier(HundredHammersBase):
             test_size=test_size,
             n_train_evals=n_train_evals,
             n_val_evals=n_val_evals,
-            n_folds_tune=n_folds_tune,
             show_progress_bar=show_progress_bar,
             seed_strategy=seed_strategy,
         )
