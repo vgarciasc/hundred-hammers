@@ -2,6 +2,7 @@
 This module provides some alternative names for metrics
 implemented in sklearn.
 """
+
 from __future__ import annotations
 from typing import Tuple
 from sklearn.metrics import get_scorer
@@ -24,12 +25,12 @@ metric_alias = {
 }
 
 
-def process_metric(metric: str | callable) -> Tuple[str, callable, dict]:
+def process_metric(metric: str | callable, metric_params: dict = None) -> Tuple[str, callable, dict]:
     """
-    shut up
-    """
+    Converts a metric into a tuple with the name, function call and its parameters
 
-    result = None
+    :param metric: a string or callable that represents the error function
+    """
 
     if isinstance(metric, str):
         # Metric given by its name
@@ -38,9 +39,14 @@ def process_metric(metric: str | callable) -> Tuple[str, callable, dict]:
             metric_fn_name = metric_alias[metric]
 
         scorer = get_scorer(metric_fn_name)
-        result = (metric, scorer._score_func, scorer._kwargs)
+
+        name = metric
+        metric_fn = scorer._score_func
+        metric_params = scorer._kwargs if metric_params is None else metric_params
     else:
         # Metric given as a lambda function
-        result = (metric.__name__, metric, {})
+        name = metric.__name__
+        metric_fn = metric
+        metric_params = {} if metric_params is None else metric_params
 
-    return result
+    return (name, metric_fn, metric_params)

@@ -21,16 +21,27 @@ class HundredHammersBase:
     and performing hyperparameter optimization.
 
     :param models: List of models to evaluate.
+    :type models: Iterable[Tuple[str, BaseEstimator, dict]]
     :param metrics: Metrics to use to evaluate the models.
+    :type metrics: Iterable[str | callable]
     :param eval_metric: Target metric to use in hyperparameter optimization.
+    :type eval_metric: str | callable
     :param input_transform: Input normalization strategy used. Specified as a string or the normalization class. ('MinMax', 'MaxAbs', 'Standard', 'Norm', 'Robust')
+    :type input_transform: TransformerMixin
     :param cross_validator: Cross Validator to use in the evaluation.
+    :type cross_validator: callable
     :param cross_validator_params: Parameters for the Cross Validator.
+    :type cross_validator_params: dict
     :param test_size: Percentage of the dataset to use for testing.
+    :type test_size: float
     :param n_train_evals: Number of times to vary the training/test separation seed.
+    :type n_train_evals: int
     :param n_val_evals: Number of times to vary the cross-validation seed.
+    :type n_val_evals: int
     :param n_folds_tune: Number of Cross Validation folds to use in hyperparameter optimization grid search.
+    :type n_folds_tune: bool
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
+    :type seed_strategy: str
     """
 
     def __init__(
@@ -98,6 +109,7 @@ class HundredHammersBase:
         Pandas dataframe reflecting the results of the last evaluation of the models with extra information.
 
         :return: Dataframe with the performance of each of the models.
+        :rtype: DataFrame
         """
 
         if self._full_report.empty:
@@ -111,6 +123,7 @@ class HundredHammersBase:
         Pandas dataframe reflecting the results of the last evaluation of the models.
 
         :return: Dataframe with the performance of each of the models.
+        :rtype: DataFrame
         """
 
         if self._report.empty:
@@ -124,6 +137,7 @@ class HundredHammersBase:
         List of the best hyperparameters found for each model.
 
         :return: List of the best hyperparameters obtained for each model.
+        :rtype: List[Tuple[str, dict]]
         """
 
         if not self._best_params:
@@ -139,6 +153,7 @@ class HundredHammersBase:
         Get the trained models.
 
         :return: A list of models in the form of tuples (name, model, hyperparameters).
+        :rtype: Iterable[tuple[str, BaseEstimator, dict]]
         """
 
         if self._report.empty:
@@ -151,8 +166,11 @@ class HundredHammersBase:
         Calculate metrics for a given model.
 
         :param y_true: True values.
+        :type y_true: ndarray
         :param y_pred: Predicted values.
+        :type y_pred: ndarray
         :return: A list with the results for each metric.
+        :rtype: List[float]
         """
 
         return [metric_fn(y_true, y_pred, **metric_params) for _, metric_fn, metric_params in self.metrics]
@@ -162,10 +180,15 @@ class HundredHammersBase:
         Train every model to obtain its performance.
 
         :param X: Input data.
+        :type X: ndarray
         :param y: Target data.
+        :type y: ndarray
         :param optim_hyper: Whether to optimize the hyperparameters of the models.
-        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :type optim_hyper: bool
+        :param hyperoptimizer: Hyperparameter optimizer that will find the best parameters for each model.
+        :type hyperoptimizer: HyperOptimizer
         :return: Dataframe with the performance of each of the models.
+        :rtype: DataFrame
         """
 
         if optim_hyper and hyperoptimizer is None:
@@ -246,9 +269,13 @@ class HundredHammersBase:
         Tune a model using cross-validation.
 
         :param X: Input observations.
+        :type X: ndarray
         :param y: Target values.
-        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :type y: ndarray
+        :param hyperoptimizer: Hyperparameter optimizer that will find the best parameters for each model.
+        :type hyperoptimizer: HyperOptimizer
         :return: The tuned model.
+        :rtype: List[Tuple[str, BaseEstimator, dict]]
         """
 
         best_param_list = self.optimize_hyperparams(X, y, hyperoptimizer)
@@ -267,9 +294,13 @@ class HundredHammersBase:
         Obtain the best set of parameters for each of the models.
 
         :param X: Input data.
+        :type X: ndarray
         :param y: Target data.
-        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :type y: ndarray
+        :param hyperoptimizer: Hyperparameter optimizer that will find the best parameters for each model.
+        :type hyperoptimizer: HyperOptimizer
         :return: List of the best hyperparameters obtained for each model.
+        :rtype: List[dict]
         """
 
         self._best_params = []
@@ -287,10 +318,15 @@ class HundredHammersBase:
         Evaluate all models on a given dataset with their default hyperparameters.
 
         :param X_train: Input observations in the training set.
+        :type X_train: ndarray
         :param y_train: Target values in the training set.
+        :type y_train: ndarray
         :param X_test: Input observations in the test set.
+        :type X_test: ndarray
         :param y_test: Target values in the test set.
+        :type y_test: ndarray
         :return: A DataFrame with the results.
+        :rtype: list[tuple[Any, Any, tuple[list[Any], list[Any], list[float], list[float]]]]
         """
 
         results = []
@@ -317,12 +353,19 @@ class HundredHammersBase:
         Evaluate a model multiple times, with a different seed every time.
 
         :param X_train: Input observations in the training set.
+        :type X_train: ndarray
         :param y_train: Target values in the training set.
+        :type y_train: ndarray
         :param X_test: Input observations in the test set.
+        :type X_test: ndarray
         :param y_test: Target values in the test set.
+        :type y_test: ndarray
         :param model: Model to evaluate.
+        :type model: BaseEstimator
         :param n_evals: Number of times to train the model (each iteration uses a different seed).
+        :type n_evals: int
         :return: A tuple with the results for validation train, validation test, train and test.
+        :rtype: tuple[list[Any], list[Any]]
         """
 
         results_val_train, results_val_test = [], []
@@ -356,12 +399,19 @@ class HundredHammersBase:
         Evaluate a model on a given dataset.
 
         :param X_train: Input observations in the training set.
+        :type X_train: ndarray
         :param y_train: Target values in the training set.
+        :type y_train: ndarray
         :param X_test: Input observations in the test set.
+        :type X_test: ndarray
         :param y_test: Target values in the test set.
+        :type y_test: ndarray
         :param model: Model to evaluate.
+        :type model: BaseEstimator
         :param seed: Random seed.
+        :type seed: int
         :return: A tuple with the results for validation train, validation test, train and test.
+        :rtype: tuple[list[list[float]], list[list[float]]]
         """
 
         if hasattr(model, "random_state"):

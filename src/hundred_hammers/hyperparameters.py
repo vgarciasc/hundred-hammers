@@ -31,6 +31,7 @@ def add_known_model_def(def_dict: dict):
     search step.
 
     :param def_dict: dictionary that defines the hyperparameters of a new model.
+    :type def_dict: dict
     """
 
     if hyperparam_def_schema.is_valid(def_dict):
@@ -48,8 +49,10 @@ def find_hyperparam_def(model: BaseEstimator) -> dict:
     """
     Obtains the definitions of the hyperparameters of each of the model listed.
 
-    :param model: List of model for which we want to find the hyperparameters.
-    :return: List with the hyperparameter definition for each of the model passed
+    :param model: Model for which we want to find the hyperparameters.
+    :type model: BaseEstimator
+    :return: Hyperparameter definition for the model.
+    :rtype: dict
     """
 
     model_name = type(model).__name__
@@ -69,9 +72,12 @@ def find_hyperparam_grid(model: BaseEstimator, n_grid_points: int = 10) -> dict:
     """
     Obtains a grid of hyperparameters to optimize for the model.
 
-    :param model: List of model for which we want to find the hyperparameters.
+    :param model: Model for which we want to find the hyperparameters.
+    :type model: BaseEstimator
     :param n_grid_points: Number of values to pick for each hyperparameter.
-    :return: List with the hyperparameter definition for each of the model passed
+    :type n_grid_points: int
+    :return: Hyperparameter definition for the model.
+    :rtype: dict
     """
 
     hyperparam_def = find_hyperparam_def(model)
@@ -89,8 +95,11 @@ def construct_hyperparam_grid(hyperparam_grid_def: dict, n_grid_points: int = 10
     Generate a grid of hyperparameters from their definition.
 
     :param hyperparam_grid_def: Definition of the hyperparameters to be generated as a grid.
+    :type hyperparam_grid_def: dict 
     :param n_grid_points: Number of values to pick for each hyperparameter.
-    :return: List of hyperparameter grids to use in grid search.
+    :type n_grid_points: int
+    :return: Hyperparameter grid to use in grid search.
+    :rtype: dict
     """
 
     keys = [k for k in hyperparam_grid_def.keys() if k != "model"]
@@ -123,9 +132,12 @@ def find_hyperparam_random(model: BaseEstimator, n_samples: int = 10) -> dict:
     """
     Obtains a grid of hyperparameters to optimize for the model.
 
-    :param model: List of model for which we want to find the hyperparameters.
+    :param model: Model for which we want to find the hyperparameters.
+    :type model: BaseEstimator
     :param n_grid_points: Number of values to pick for each hyperparameter.
-    :return: List with the hyperparameter definition for each of the model passed
+    :type n_grid_points: int
+    :return: Hyperparameter definition for the model.
+    :rtype: dict
     """
 
     hyperparam_def = find_hyperparam_def(model)
@@ -143,8 +155,11 @@ def construct_hyperparam_random(hyperparam_grid_def: dict, n_samples: int = 10) 
     Generate a grid of hyperparameters from their definition.
 
     :param hyperparam_grid_def: Definition of the hyperparameters to be generated as a grid.
+    :type hyperparam_grid_def: dict
     :param n_grid_points: Number of values to pick for each hyperparameter.
+    :type n_grid_points: int
     :return: List of hyperparameter grids to use in grid search.
+    :rtype: dict
     """
 
     keys = [k for k in hyperparam_grid_def.keys() if k != "model"]

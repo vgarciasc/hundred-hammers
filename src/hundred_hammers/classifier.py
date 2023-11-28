@@ -21,7 +21,6 @@ class HundredHammersClassifier(HundredHammersBase):
     :param test_size: Percentage of the dataset to use for testing (default 0.2)
     :param n_train_evals: Number of times to vary the training/test separation seed.
     :param n_val_evals: Number of times to vary the cross-validation seed.
-    :param n_folds_tune: Number of Cross Validation folds to use in hyperparameter optimization grid search (default 5)
     :param show_progress_bar: Show progress bar in the evaluation (default False)
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
     """
