@@ -94,7 +94,7 @@ class HundredHammersBase:
                         "choose one of ['MinMax','MaxAbs','Standard','Norm','Robust'] or use one of sklearn's normalization classes."
                     )
             elif not isinstance(input_transform, TransformerMixin):
-                raise ValueError("The input_transform must be either `None` or of type TransformerMixin and str.")
+                raise ValueError("The input_transform must be either `None` or of type TransformerMixin or str.")
 
         self._input_transform = input_transform
 
