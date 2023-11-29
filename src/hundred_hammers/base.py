@@ -38,8 +38,6 @@ class HundredHammersBase:
     :type n_train_evals: int
     :param n_val_evals: Number of times to vary the cross-validation seed.
     :type n_val_evals: int
-    :param n_folds_tune: Number of Cross Validation folds to use in hyperparameter optimization grid search.
-    :type n_folds_tune: bool
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
     :type seed_strategy: str
     """
@@ -186,6 +184,7 @@ class HundredHammersBase:
         :param optim_hyper: Whether to optimize the hyperparameters of the models.
         :type optim_hyper: bool
         :param hyperoptimizer: Hyperparameter optimizer that will find the best parameters for each model.
+            By default, will use Grid Search with 5-fold cross validation on the evaluation metric.
         :type hyperoptimizer: HyperOptimizer
         :return: Dataframe with the performance of each of the models.
         :rtype: DataFrame
@@ -356,10 +355,6 @@ class HundredHammersBase:
         :type X_train: ndarray
         :param y_train: Target values in the training set.
         :type y_train: ndarray
-        :param X_test: Input observations in the test set.
-        :type X_test: ndarray
-        :param y_test: Target values in the test set.
-        :type y_test: ndarray
         :param model: Model to evaluate.
         :type model: BaseEstimator
         :param n_evals: Number of times to train the model (each iteration uses a different seed).
@@ -402,10 +397,6 @@ class HundredHammersBase:
         :type X_train: ndarray
         :param y_train: Target values in the training set.
         :type y_train: ndarray
-        :param X_test: Input observations in the test set.
-        :type X_test: ndarray
-        :param y_test: Target values in the test set.
-        :type y_test: ndarray
         :param model: Model to evaluate.
         :type model: BaseEstimator
         :param seed: Random seed.

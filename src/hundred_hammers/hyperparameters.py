@@ -27,7 +27,7 @@ def add_known_model_def(def_dict: dict):
         }
 
     There can be any number of hyperparameters, even 0, they MUST correspond to the
-    arguments used in the model constructor or you will get an error in the hyperparameter
+    arguments used in the model constructor, or you will get an error in the hyperparameter
     search step.
 
     :param def_dict: dictionary that defines the hyperparameters of a new model.

@@ -14,9 +14,9 @@ from .metric_alias import process_metric
 
 class HyperOptimizer(ABC):
     """
-    Hyperparameter Optmizer interface.
+    Hyperparameter Optimizer interface.
 
-    :param metric: function that calculates the error of the predicitons of a model compared with the real dataset.
+    :param metric: function that calculates the error of the predictions of a model compared with the real dataset.
     :type metric: str or callable or Tuple[str, callable, dict]
     """
 
@@ -82,7 +82,7 @@ class HyperOptimizerRandomSearch(HyperOptimizer):
     """
     Grid Search Hyperparameter Optimizer.
 
-    :param metric: function that calculates the error of the predicitons of a model compared with the real dataset.
+    :param metric: function that calculates the error of the predictions of a model compared with the real dataset.
     :type metric: str or callable or Tuple[str, callable, dict]
     :param n_folds_tune: number of splits in cross validation for grid search.
     :type n_folds_tune: int
