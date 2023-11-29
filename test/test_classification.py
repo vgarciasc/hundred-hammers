@@ -43,7 +43,7 @@ def test_complete_optim_hyperparams():
     hh = HundredHammersClassifier()
 
     # Evaluate the model
-    df_results = hh.evaluate(X, y, optim_hyper=True, n_grid_points=4)
+    df_results = hh.evaluate(X, y, optim_hyper=True)
     assert type(df_results) is pd.DataFrame
 
 def test_seed_strategy():

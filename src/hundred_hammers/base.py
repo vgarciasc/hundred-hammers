@@ -4,34 +4,14 @@ import warnings
 from copy import deepcopy, copy
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.model_selection import train_test_split, KFold
-from sklearn.metrics import get_scorer, make_scorer
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, StandardScaler, Normalizer, RobustScaler
 from sklearn.pipeline import Pipeline
 from .config import hh_logger
-from .metric_alias import metric_alias
-from .hyperparameters import find_hyperparam_grid
-from tqdm import tqdm
-
-
-def _process_metric(metric: str | callable) -> Tuple[str, callable, dict]:
-    result = None
-
-    if isinstance(metric, str):
-        # Metric given by its name
-        metric_fn_name = metric
-        if metric in metric_alias:
-            metric_fn_name = metric_alias[metric]
-
-        scorer = get_scorer(metric_fn_name)
-        result = (metric, scorer._score_func, scorer._kwargs)
-    else:
-        # Metric given as a lambda function
-        result = (metric.__name__, metric, {})
-
-    return result
+from .metric_alias import process_metric
+from .hyperoptimizer import HyperOptimizer, HyperOptimizerGridSearch
 
 
 class HundredHammersBase:
@@ -41,16 +21,25 @@ class HundredHammersBase:
     and performing hyperparameter optimization.
 
     :param models: List of models to evaluate.
+    :type models: Iterable[Tuple[str, BaseEstimator, dict]]
     :param metrics: Metrics to use to evaluate the models.
+    :type metrics: Iterable[str | callable]
     :param eval_metric: Target metric to use in hyperparameter optimization.
+    :type eval_metric: str | callable
     :param input_transform: Input normalization strategy used. Specified as a string or the normalization class. ('MinMax', 'MaxAbs', 'Standard', 'Norm', 'Robust')
+    :type input_transform: TransformerMixin
     :param cross_validator: Cross Validator to use in the evaluation.
+    :type cross_validator: callable
     :param cross_validator_params: Parameters for the Cross Validator.
+    :type cross_validator_params: dict
     :param test_size: Percentage of the dataset to use for testing.
+    :type test_size: float
     :param n_train_evals: Number of times to vary the training/test separation seed.
+    :type n_train_evals: int
     :param n_val_evals: Number of times to vary the cross-validation seed.
-    :param n_folds_tune: Number of Cross Validation folds to use in hyperparameter optimization grid search.
+    :type n_val_evals: int
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
+    :type seed_strategy: str
     """
 
     def __init__(
@@ -64,31 +53,27 @@ class HundredHammersBase:
         test_size: float = 0.2,
         n_train_evals: int = 1,
         n_val_evals: int = 1,
-        n_folds_tune: int = 5,
         show_progress_bar: bool = True,
         seed_strategy: str = "sequential",
     ):
         self.models = models
-        self.metrics = [_process_metric(metric) for metric in metrics]
+        self.metrics = [process_metric(metric) for metric in metrics]
 
         if eval_metric is None:
             self.eval_metric = self.metrics[0]
         else:
-            self.eval_metric = _process_metric(eval_metric)
+            self.eval_metric = process_metric(eval_metric)
 
         self.cross_validator = cross_validator
         self.cross_validator_params = cross_validator_params
         self.test_size = test_size
-        self.n_folds_tune = n_folds_tune
         self.n_train_evals = n_train_evals
         self.n_val_evals = n_val_evals
         self.show_progress_bar = show_progress_bar
         self.seed_strategy = seed_strategy
 
         if input_transform:
-            if isinstance(input_transform, TransformerMixin):
-                input_transform = input_transform
-            elif isinstance(input_transform, type):
+            if isinstance(input_transform, type):
                 input_transform = input_transform.__call__()
             elif isinstance(input_transform, str):
                 if input_transform == "MinMax":
@@ -102,10 +87,13 @@ class HundredHammersBase:
                 elif input_transform == "Robust":
                     input_transform = RobustScaler()
                 else:
-                    raise Exception(
+                    raise ValueError(
                         "Normalization method not implemented,"
-                        "choose one of ['MinMax','MaxAbs','Standard','Norm','Robust'] or use the sklearn normalization class."
+                        "choose one of ['MinMax','MaxAbs','Standard','Norm','Robust'] or use one of sklearn's normalization classes."
                     )
+            elif not isinstance(input_transform, TransformerMixin):
+                raise ValueError("The input_transform must be either `None` or of type TransformerMixin or str.")
+
         self._input_transform = input_transform
 
         self._full_report = pd.DataFrame()
@@ -119,13 +107,13 @@ class HundredHammersBase:
         Pandas dataframe reflecting the results of the last evaluation of the models with extra information.
 
         :return: Dataframe with the performance of each of the models.
+        :rtype: DataFrame
         """
 
         if self._full_report.empty:
             hh_logger.warning("No reports available. Use the `evaluate` method to generate the full report.")
 
         return self._full_report
-        
 
     @property
     def report(self) -> pd.DataFrame:
@@ -133,6 +121,7 @@ class HundredHammersBase:
         Pandas dataframe reflecting the results of the last evaluation of the models.
 
         :return: Dataframe with the performance of each of the models.
+        :rtype: DataFrame
         """
 
         if self._report.empty:
@@ -146,6 +135,7 @@ class HundredHammersBase:
         List of the best hyperparameters found for each model.
 
         :return: List of the best hyperparameters obtained for each model.
+        :rtype: List[Tuple[str, dict]]
         """
 
         if not self._best_params:
@@ -161,6 +151,7 @@ class HundredHammersBase:
         Get the trained models.
 
         :return: A list of models in the form of tuples (name, model, hyperparameters).
+        :rtype: Iterable[tuple[str, BaseEstimator, dict]]
         """
 
         if self._report.empty:
@@ -173,27 +164,39 @@ class HundredHammersBase:
         Calculate metrics for a given model.
 
         :param y_true: True values.
+        :type y_true: ndarray
         :param y_pred: Predicted values.
+        :type y_pred: ndarray
         :return: A list with the results for each metric.
+        :rtype: List[float]
         """
 
         return [metric_fn(y_true, y_pred, **metric_params) for _, metric_fn, metric_params in self.metrics]
 
-    def evaluate(self, X: np.ndarray, y: np.ndarray, optim_hyper: bool = True, n_grid_points: int = 10) -> pd.DataFrame:
+    def evaluate(self, X: np.ndarray, y: np.ndarray, optim_hyper: bool = True, hyperoptimizer: HyperOptimizer = None) -> pd.DataFrame:
         """
         Train every model to obtain its performance.
 
         :param X: Input data.
+        :type X: ndarray
         :param y: Target data.
+        :type y: ndarray
         :param optim_hyper: Whether to optimize the hyperparameters of the models.
-        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :type optim_hyper: bool
+        :param hyperoptimizer: Hyperparameter optimizer that will find the best parameters for each model.
+            By default, will use Grid Search with 5-fold cross validation on the evaluation metric.
+        :type hyperoptimizer: HyperOptimizer
         :return: Dataframe with the performance of each of the models.
+        :rtype: DataFrame
         """
+
+        if optim_hyper and hyperoptimizer is None:
+            hyperoptimizer = HyperOptimizerGridSearch(self.eval_metric)
 
         report = []
         seeds = self._generate_seeds(self.n_train_evals, self.seed_strategy)
 
-        for i, seed in enumerate(tqdm(seeds, desc=f"Evaluating...", leave=False, disable=not self.show_progress_bar)):
+        for i, seed in enumerate(tqdm(seeds, desc="Evaluating...", leave=False, disable=not self.show_progress_bar)):
             # Do train/test split
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=seed, stratify=self._stratify_array(y))
 
@@ -208,16 +211,16 @@ class HundredHammersBase:
 
             # Do (or don't do) hyperparameter optimization
             if optim_hyper:
-                new_models = self.tune_models(X_norm_train, y_train, n_grid_points)
+                new_models = self.tune_models(X_norm_train, y_train, hyperoptimizer)
             else:
                 new_models = deepcopy(self.models)
 
             # Evaluate models
             model_tuples = self._evaluate_models(X_norm_train, y_train, X_norm_test, y_test, new_models)
-            model_names, trained_models, results = zip(*model_tuples)
+            _model_names, trained_models, _results = zip(*model_tuples)
 
             # Add results to dataframe
-            for model_name, trained_model, res in model_tuples:
+            for model_name, _trained_model, res in model_tuples:
                 results_val_train, results_val_test, result_train, result_test = res
                 for res_val_train, res_val_test in zip(results_val_train, results_val_test):
                     val_seed = res_val_train[0]
@@ -260,35 +263,21 @@ class HundredHammersBase:
 
         return report
 
-    def optimize_hyperparams(self, X: np.ndarray, y: np.ndarray, n_grid_points: int = 10) -> List[dict]:
-        """
-        Obtain the best set of parameters for each of the models.
-
-        :param X: Input data.
-        :param y: Target data.
-        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
-        :return: List of the best hyperparameters obtained for each model.
-        """
-
-        self._best_params = []
-
-        for name, model, param_grid in tqdm(self.models, desc="Optimizing hyperparameters...", leave=False, disable=not self.show_progress_bar):
-            best_params_model = self._optimize_model_hyperparams(X, y, model, param_grid, n_grid_points)
-            self._best_params.append(best_params_model)
-
-        return self._best_params
-
-    def tune_models(self, X: np.ndarray, y: np.ndarray, n_grid_points: int = 10) -> List[Tuple[str, BaseEstimator, dict]]:
+    def tune_models(self, X: np.ndarray, y: np.ndarray, hyperoptimizer: HyperOptimizer = None) -> List[Tuple[str, BaseEstimator, dict]]:
         """
         Tune a model using cross-validation.
 
         :param X: Input observations.
+        :type X: ndarray
         :param y: Target values.
-        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
+        :type y: ndarray
+        :param hyperoptimizer: Hyperparameter optimizer that will find the best parameters for each model.
+        :type hyperoptimizer: HyperOptimizer
         :return: The tuned model.
+        :rtype: List[Tuple[str, BaseEstimator, dict]]
         """
 
-        best_param_list = self.optimize_hyperparams(X, y, n_grid_points)
+        best_param_list = self.optimize_hyperparams(X, y, hyperoptimizer)
 
         new_models = []
         for (model_name, model, model_param_grid), best_params in zip(self.models, best_param_list):
@@ -299,6 +288,28 @@ class HundredHammersBase:
 
         return new_models
 
+    def optimize_hyperparams(self, X: np.ndarray, y: np.ndarray, hyperoptimizer: HyperOptimizer = None) -> List[dict]:
+        """
+        Obtain the best set of parameters for each of the models.
+
+        :param X: Input data.
+        :type X: ndarray
+        :param y: Target data.
+        :type y: ndarray
+        :param hyperoptimizer: Hyperparameter optimizer that will find the best parameters for each model.
+        :type hyperoptimizer: HyperOptimizer
+        :return: List of the best hyperparameters obtained for each model.
+        :rtype: List[dict]
+        """
+
+        self._best_params = []
+
+        for _name, model, param_grid in tqdm(self.models, desc="Optimizing hyperparameters...", leave=False, disable=not self.show_progress_bar):
+            best_params_model = hyperoptimizer.best_params(X, y, model, param_grid)
+            self._best_params.append(best_params_model)
+
+        return self._best_params
+
     def _evaluate_models(
         self, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray, models: Iterable[Tuple[str, BaseEstimator, dict]]
     ) -> list[tuple[Any, Any, tuple[list[Any], list[Any], list[float], list[float]]]]:
@@ -306,10 +317,15 @@ class HundredHammersBase:
         Evaluate all models on a given dataset with their default hyperparameters.
 
         :param X_train: Input observations in the training set.
+        :type X_train: ndarray
         :param y_train: Target values in the training set.
+        :type y_train: ndarray
         :param X_test: Input observations in the test set.
+        :type X_test: ndarray
         :param y_test: Target values in the test set.
+        :type y_test: ndarray
         :return: A DataFrame with the results.
+        :rtype: list[tuple[Any, Any, tuple[list[Any], list[Any], list[float], list[float]]]]
         """
 
         results = []
@@ -336,12 +352,15 @@ class HundredHammersBase:
         Evaluate a model multiple times, with a different seed every time.
 
         :param X_train: Input observations in the training set.
+        :type X_train: ndarray
         :param y_train: Target values in the training set.
-        :param X_test: Input observations in the test set.
-        :param y_test: Target values in the test set.
+        :type y_train: ndarray
         :param model: Model to evaluate.
+        :type model: BaseEstimator
         :param n_evals: Number of times to train the model (each iteration uses a different seed).
+        :type n_evals: int
         :return: A tuple with the results for validation train, validation test, train and test.
+        :rtype: tuple[list[Any], list[Any]]
         """
 
         results_val_train, results_val_test = [], []
@@ -375,12 +394,15 @@ class HundredHammersBase:
         Evaluate a model on a given dataset.
 
         :param X_train: Input observations in the training set.
+        :type X_train: ndarray
         :param y_train: Target values in the training set.
-        :param X_test: Input observations in the test set.
-        :param y_test: Target values in the test set.
+        :type y_train: ndarray
         :param model: Model to evaluate.
+        :type model: BaseEstimator
         :param seed: Random seed.
+        :type seed: int
         :return: A tuple with the results for validation train, validation test, train and test.
+        :rtype: tuple[list[list[float]], list[list[float]]]
         """
 
         if hasattr(model, "random_state"):
@@ -409,44 +431,13 @@ class HundredHammersBase:
 
         return results_val_train, results_val_test
 
-    def _optimize_model_hyperparams(
-        self, X: np.ndarray, y: np.ndarray, model: BaseEstimator, param_grid: dict = None, n_grid_points: int = 10
-    ) -> dict:
-        """
-        Optimize the hyperparameters of a model.
-
-        :param X: Input data.
-        :param y: Target data.
-        :param model: Model to optimize.
-        :param param_grid: Predefined hyperparameter grid.
-        :param n_grid_points: Number of points to take for each hyperparameter in grid search.
-        :return: The best hyperparameters found for the model.
-        """
-
-        if not param_grid:
-            hh_logger.info(f"No specified hyperparameter grid for {type(model).__name__}. Generating hyperparameter grid.")
-            param_grid = find_hyperparam_grid(model, n_grid_points)
-
-        eval_metric = make_scorer(lambda y_true, y_pred: self.eval_metric[1](y_true, y_pred, **self.eval_metric[2]))
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            grid_search_model = GridSearchCV(model, param_grid, scoring=eval_metric, n_jobs=-1, cv=self.n_folds_tune)
-            grid_search_model.fit(X, y)
-
-        results = pd.DataFrame(grid_search_model.cv_results_).dropna()
-        best_params_df = results[results["rank_test_score"] == results["rank_test_score"].min()]
-        best_params = best_params_df.head(1)["params"].values[0]
-
-        return best_params
-
     def _create_cross_validator(self, seed):
         cv = self.cross_validator(**self.cross_validator_params)
         if hasattr(cv, "random_state"):
             cv.random_state = seed
         return cv
 
-    def _stratify_array(self, y):
+    def _stratify_array(self, _y):
         return None
 
     def _generate_seeds(self, n, seed_strategy):

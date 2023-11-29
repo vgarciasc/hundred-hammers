@@ -21,7 +21,6 @@ class HundredHammersClassifier(HundredHammersBase):
     :param test_size: Percentage of the dataset to use for testing (default 0.2)
     :param n_train_evals: Number of times to vary the training/test separation seed.
     :param n_val_evals: Number of times to vary the cross-validation seed.
-    :param n_folds_tune: Number of Cross Validation folds to use in hyperparameter optimization grid search (default 5)
     :param show_progress_bar: Show progress bar in the evaluation (default False)
     :param seed_strategy: Strategy used to generate the seeds for the different evaluations ('sequential' or 'random')
     """
@@ -33,11 +32,10 @@ class HundredHammersClassifier(HundredHammersBase):
         eval_metric=None,
         input_transform=None,
         cross_validator=StratifiedKFold,
-        cross_validator_params={"shuffle": True, "n_splits": 5},
+        cross_validator_params=None,
         test_size=0.2,
         n_train_evals=1,
         n_val_evals=1,
-        n_folds_tune=5,
         show_progress_bar=False,
         seed_strategy="sequential",
     ):
@@ -46,6 +44,9 @@ class HundredHammersClassifier(HundredHammersBase):
 
         if metrics is None:
             metrics = copy(DEFAULT_CLASSIFICATION_METRICS)
+
+        if cross_validator_params is None:
+            cross_validator_params = {"shuffle": True, "n_splits": 5}
 
         super().__init__(
             models=models,
@@ -57,7 +58,6 @@ class HundredHammersClassifier(HundredHammersBase):
             test_size=test_size,
             n_train_evals=n_train_evals,
             n_val_evals=n_val_evals,
-            n_folds_tune=n_folds_tune,
             show_progress_bar=show_progress_bar,
             seed_strategy=seed_strategy,
         )

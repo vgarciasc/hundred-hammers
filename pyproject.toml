@@ -43,6 +43,15 @@ dependencies = [
     "tqdm==4.62.3",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest==7.4.0",
+    "coverage==7.3.1",
+    "black[jupyter]==23.10.1",
+    "sphinx==7.1.1",
+    "pydata_sphinx_theme==0.14.4"
+]
+
 [project.urls]
 "Homepage" = "https://github.com/vgarciasc/hundred-hammers"
 "Bug Tracker" = "https://github.com/vgarciasc/hundred-hammers/issues"

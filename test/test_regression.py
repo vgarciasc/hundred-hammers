@@ -9,7 +9,7 @@ from sklearn.model_selection import LeaveOneOut, KFold
 from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, StandardScaler, Normalizer, RobustScaler, KBinsDiscretizer
 
 from hundred_hammers import hh_logger
-from hundred_hammers import HundredHammersRegressor
+from hundred_hammers import HundredHammersRegressor, HyperOptimizerGridSearch, HyperOptimizerRandomSearch
 from hundred_hammers.plots import plot_batch_results, plot_regression_pred
 from hundred_hammers.model_zoo import (
     DecisionTreeRegressor,
@@ -40,12 +40,66 @@ def test_complete_optim_hyperparams():
     data = load_diabetes()
     X = data.data
     y = data.target
+    
+    # Small amount of models to reduce running time
+    models = [
+        ('Decision Tree', DecisionTreeRegressor(), None),
+        ('Linear Regression', LinearRegression(), None),
+        ('SVM', LinearSVR(), None),
+        ('Dummy', DummyRegressor(), None)
+    ]
 
     # Create the model
-    hh = HundredHammersRegressor()
+    hh = HundredHammersRegressor(models=models)
 
     # Evaluate the model
-    df_results = hh.evaluate(X, y, optim_hyper=True, n_grid_points=4)
+    df_results = hh.evaluate(X, y, optim_hyper=True)
+    assert type(df_results) is pd.DataFrame
+
+def test_complete_optim_hyperparams_gridsearch():
+    data = load_diabetes()
+    X = data.data
+    y = data.target
+    
+    # Small amount of models to reduce running time
+    models = [
+        ('Decision Tree', DecisionTreeRegressor(), None),
+        ('Linear Regression', LinearRegression(), None),
+        ('SVM', LinearSVR(), None),
+        ('Dummy', DummyRegressor(), None)
+    ]
+    
+    # Create the model
+    hh = HundredHammersRegressor(models=models)
+
+    # Create hyperparameter optimizer
+    hoptim = HyperOptimizerGridSearch("MSE")
+
+    # Evaluate the model
+    df_results = hh.evaluate(X, y, optim_hyper=True, hyperoptimizer=hoptim)
+    assert type(df_results) is pd.DataFrame
+
+def test_complete_optim_hyperparams_randomsearch():
+    data = load_diabetes()
+    X = data.data
+    y = data.target
+    
+    # Small amount of models to reduce running time
+    models = [
+        ('Decision Tree', DecisionTreeRegressor(), None),
+        ('Linear Regression', LinearRegression(), None),
+        ('SVM', LinearSVR(), None),
+        ('Dummy', DummyRegressor(), None)
+    ]
+
+    # Create the model
+    hh = HundredHammersRegressor(models=models)
+
+    # Create hyperparameter optimizer
+    hoptim = HyperOptimizerRandomSearch()
+
+    # Evaluate the model
+    df_results = hh.evaluate(X, y, optim_hyper=True, hyperoptimizer=hoptim)
     assert type(df_results) is pd.DataFrame
 
 def test_cross_validations():

@@ -49,6 +49,13 @@ Hyperparameters module
    :undoc-members:
    :show-inheritance:
 
+Hyperparameter Optimization module
+----------------------------------
+.. automodule:: hundred_hammers.hyperoptimizer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Metric\_alias module
 -------------------------------------
 
