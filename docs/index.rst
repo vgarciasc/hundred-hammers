@@ -31,3 +31,4 @@ Indices and tables
    :caption: Contents:
 
    API reference <hundred_hammers>
+   Tutorials <tutorials>
