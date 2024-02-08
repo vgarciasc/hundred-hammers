@@ -40,8 +40,7 @@ dependencies = [
     "scikit-elm==0.21a0",
     "dask[distributed]==2023.9.0",
     "schema==0.7.5",
-    "tqdm==4.62.3",
-    "rich",
+    "rich==13.7.0",
 ]
 
 [project.optional-dependencies]
