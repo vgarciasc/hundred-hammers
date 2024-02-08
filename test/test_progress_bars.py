@@ -25,9 +25,14 @@ from sklearn.exceptions import ConvergenceWarning
 
 @pytest.mark.skip(reason="Test for progress bars")
 def test_progress_nohyper():
-    X, y = make_classification(n_samples=1000, n_features=10)
+    X, y = make_classification(n_samples=400, n_features=10)
 
-    hh_models = HundredHammersClassifier(seed_strategy='sequential', show_progress_bar=True)
+    hh_models = HundredHammersClassifier(
+        seed_strategy='sequential',
+        show_progress_bar=True,
+        n_train_evals=3,
+        n_val_evals=3,
+    )
 
     df_results_1 = hh_models.evaluate(X, y, optim_hyper=False)
 
@@ -35,7 +40,12 @@ def test_progress_nohyper():
 def test_progress_hyper():
     X, y = make_classification(n_samples=200, n_features=10)
 
-    hh_models = HundredHammersClassifier(seed_strategy='sequential', show_progress_bar=True)
+    hh_models = HundredHammersClassifier(
+        seed_strategy='sequential',
+        show_progress_bar=True,
+        n_train_evals=3,
+        n_val_evals=3,
+    )
 
     df_results_1 = hh_models.evaluate(X, y, optim_hyper=True)
 
@@ -44,10 +54,12 @@ if __name__ == "__main__":
     hh_logger.setLevel("ERROR")
     os.system('clear' if os.name == 'posix' else 'cls')
 
+    print("3 train/test Splits, no hyperparameter optimization.\n")
     test_progress_nohyper()
     input("Next test.")
     os.system('clear' if os.name == 'posix' else 'cls')
     
+    print("3 train/test Splits, with hyperparameter optimization.\n")
     test_progress_hyper()
     input("Next test.")
     os.system('clear' if os.name == 'posix' else 'cls')
