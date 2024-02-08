@@ -184,7 +184,7 @@ class HundredHammersBase:
                 result = self._evaluate(X, y, optim_hyper, hyperoptimizer, progress)
                 progress.refresh()
         else:
-            result = self._evaluate(X, y, optim_hyper, hyperoptimizer, progress)
+            result = self._evaluate(X, y, optim_hyper, hyperoptimizer)
 
         return result
 
