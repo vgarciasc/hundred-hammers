@@ -185,10 +185,12 @@ class HundredHammersBase:
                 progress.refresh()
         else:
             result = self._evaluate(X, y, optim_hyper, hyperoptimizer, progress)
-        
+
         return result
 
-    def _evaluate(self, X: np.ndarray, y: np.ndarray, optim_hyper: bool = True, hyperoptimizer: HyperOptimizer = None, progress: rich.progress.Progress = None) -> pd.DataFrame:
+    def _evaluate(
+        self, X: np.ndarray, y: np.ndarray, optim_hyper: bool = True, hyperoptimizer: HyperOptimizer = None, progress: rich.progress.Progress = None
+    ) -> pd.DataFrame:
         """
         Train every model to obtain its performance.
 
@@ -211,10 +213,9 @@ class HundredHammersBase:
         report = []
         seeds = self._generate_seeds(self.n_train_evals, self.seed_strategy)
 
-        
         if progress is not None:
             seed_progress = progress.add_task("[cyan]Evaluating different train/test splits", total=len(seeds))
-        
+
         for i, seed in enumerate(seeds):
             # Do train/test split
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=seed, stratify=self._stratify_array(y))
@@ -265,11 +266,11 @@ class HundredHammersBase:
                     )
                     for model in trained_models
                 ]
-            
+
             if progress is not None:
                 progress.update(seed_progress, advance=1)
 
-        if progress is not None:            
+        if progress is not None:
             progress.update(seed_progress, advance=1)
 
         # Create dataframe
@@ -288,7 +289,9 @@ class HundredHammersBase:
 
         return report
 
-    def tune_models(self, X: np.ndarray, y: np.ndarray, hyperoptimizer: HyperOptimizer = None, split_idx: int = 1, progress: rich.progress.Progress=None) -> List[Tuple[str, BaseEstimator, dict]]:
+    def tune_models(
+        self, X: np.ndarray, y: np.ndarray, hyperoptimizer: HyperOptimizer = None, split_idx: int = 1, progress: rich.progress.Progress = None
+    ) -> List[Tuple[str, BaseEstimator, dict]]:
         """
         Tune a model using cross-validation.
 
@@ -313,7 +316,9 @@ class HundredHammersBase:
 
         return new_models
 
-    def optimize_hyperparams(self, X: np.ndarray, y: np.ndarray, hyperoptimizer: HyperOptimizer = None, split_idx: int = 1, progress: rich.progress.Progress=None) -> List[dict]:
+    def optimize_hyperparams(
+        self, X: np.ndarray, y: np.ndarray, hyperoptimizer: HyperOptimizer = None, split_idx: int = 1, progress: rich.progress.Progress = None
+    ) -> List[dict]:
         """
         Obtain the best set of parameters for each of the models.
 
@@ -331,7 +336,7 @@ class HundredHammersBase:
 
         if progress is not None:
             optimizer_progress = progress.add_task(f"[blue]  Optimizing models [Split {split_idx+1}]", total=len(self.models))
-        
+
         for name, model, param_grid in self.models:
             best_params_model = hyperoptimizer.best_params(X, y, model, param_grid)
             self._best_params.append(best_params_model)
@@ -339,16 +344,27 @@ class HundredHammersBase:
             if progress is not None:
                 padded_name = name.ljust(self.model_name_str_pad)
                 if len(padded_name) > self.model_name_str_pad:
-                    padded_name = padded_name[:self.model_name_str_pad-3] + "..."
+                    padded_name = padded_name[: self.model_name_str_pad - 3] + "..."
                 progress.update(optimizer_progress, advance=1, description=f"[blue]  Optimizing models [Split {split_idx+1}]: {padded_name}")
 
-        if progress is not None:            
-            progress.update(optimizer_progress, completed=len(self.models), description=f"[blue]  Optimizing models [Split {split_idx+1}] " + " "*self.model_name_str_pad)
+        if progress is not None:
+            progress.update(
+                optimizer_progress,
+                completed=len(self.models),
+                description=f"[blue]  Optimizing models [Split {split_idx+1}] " + " " * self.model_name_str_pad,
+            )
 
         return self._best_params
 
     def _evaluate_models(
-        self, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray, models: Iterable[Tuple[str, BaseEstimator, dict]], split_idx: int = 1, progress: rich.progress.Progress = None,
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_test: np.ndarray,
+        y_test: np.ndarray,
+        models: Iterable[Tuple[str, BaseEstimator, dict]],
+        split_idx: int = 1,
+        progress: rich.progress.Progress = None,
     ) -> list[tuple[Any, Any, tuple[list[Any], list[Any], list[float], list[float]]]]:
         """
         Evaluate all models on a given dataset with their default hyperparameters.
@@ -369,7 +385,7 @@ class HundredHammersBase:
 
         if progress is not None:
             model_progress = progress.add_task(f"[blue]  Evaluating models [Split {split_idx+1}]", total=len(models))
-        
+
         for i, (name, model, _) in enumerate(models):
             hh_logger.info(f"Running model [{i + 1}/{len(models)}]: {name}")
             res_val_train, res_val_test = self._evaluate_model_cv_multiple_seeds(X_train, y_train, model, n_evals=self.n_val_evals, progress=progress)
@@ -387,16 +403,18 @@ class HundredHammersBase:
             if progress is not None:
                 padded_name = name.ljust(self.model_name_str_pad)
                 if len(padded_name) > self.model_name_str_pad:
-                    padded_name = padded_name[:self.model_name_str_pad-3] + "..."
+                    padded_name = padded_name[: self.model_name_str_pad - 3] + "..."
                 progress.update(model_progress, advance=1, description=f"[blue]  Evaluating models [Split {split_idx+1}]: {padded_name}")
 
         if progress is not None:
-            progress.update(model_progress, completed=len(models), description=f"[blue]  Evaluating models [Split {split_idx+1}] " + " "*self.model_name_str_pad)
+            progress.update(
+                model_progress, completed=len(models), description=f"[blue]  Evaluating models [Split {split_idx+1}] " + " " * self.model_name_str_pad
+            )
 
         return results
 
     def _evaluate_model_cv_multiple_seeds(
-        self, X_train: np.ndarray, y_train: np.ndarray, model: BaseEstimator, n_evals: int = 10, progress: rich.progress.Progress=None
+        self, X_train: np.ndarray, y_train: np.ndarray, model: BaseEstimator, n_evals: int = 10, progress: rich.progress.Progress = None
     ) -> tuple[list[Any], list[Any]]:
         """
         Evaluate a model multiple times, with a different seed every time.
@@ -416,21 +434,12 @@ class HundredHammersBase:
         results_val_train, results_val_test = [], []
         seeds = self._generate_seeds(n_evals, self.seed_strategy)
 
-        # if progress is not None:
-        #     cv_progress = progress.add_task(f"[bright_magenta]    {model.__class__.__name__}", total=len(seeds))
-        
         for i, seed in enumerate(seeds):
             hh_logger.debug(f"Iteration [{i + 1}/{n_evals - 1}]")
             result_val_train, result_val_test = self._evaluate_model_cv(X_train, y_train, model, seed=seed)
 
             results_val_train += result_val_train
             results_val_test += result_val_test
-
-            # if progress is not None:
-            #     progress.update(cv_progress, advance=1)
-        
-        # if progress is not None:
-        #     progress.update(cv_progress, visible=False)
 
         results = (results_val_train, results_val_test)
 
