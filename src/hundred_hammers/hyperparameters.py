@@ -95,7 +95,7 @@ def construct_hyperparam_grid(hyperparam_grid_def: dict, n_grid_points: int = 10
     Generate a grid of hyperparameters from their definition.
 
     :param hyperparam_grid_def: Definition of the hyperparameters to be generated as a grid.
-    :type hyperparam_grid_def: dict 
+    :type hyperparam_grid_def: dict
     :param n_grid_points: Number of values to pick for each hyperparameter.
     :type n_grid_points: int
     :return: Hyperparameter grid to use in grid search.
