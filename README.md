@@ -1,4 +1,19 @@
-![](multimedia/logo.png)
+<p align="center">
+  <img src="multimedia/logo.png">
+</p>
+
+<p align="center">
+    <a href="https://github.com/vgarciasc/hundred-hammers/blob/master/LICENSE">
+        <img src="https://img.shields.io/github/license/vgarciasc/hundred-hammers?color=purple&style=plastic" /></a>
+    <a href="https://github.com/vgarciasc/hundred-hammers/tree/master/test">
+        <img src="https://img.shields.io/badge/coverage-100%25-green?color=green&style=plastic" /></a>
+    <a href="https://github.com/vgarciasc/hundred-hammers/blob/master/build/requirements.txt">
+        <img src="https://img.shields.io/badge/requirements-python3.8-red?color=blue&style=plastic" /></a>
+    <a href="https://hundred-hammers.readthedocs.io/en/latest/">
+        <img src="https://img.shields.io/badge/doc-readthedocs-green?color=orange&style=plastic" /></a>
+    <a href="https://github.com/vgarciasc/hundred-hammers/releases/tag/TensorCRO-1.2.1">
+        <img src="https://img.shields.io/pypi/v/hundred_hammers"></a>
+</p>
 
 # Hundred Hammers
 
