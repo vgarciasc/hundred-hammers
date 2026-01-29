@@ -49,7 +49,8 @@ dev = [
     "coverage==7.3.1",
     "black[jupyter]==23.10.1",
     "sphinx==7.1.1",
-    "pydata_sphinx_theme==0.14.4"
+    "pydata_sphinx_theme==0.14.4",
+    "nbsphinx==0.9.8"
 ]
 
 [project.urls]
